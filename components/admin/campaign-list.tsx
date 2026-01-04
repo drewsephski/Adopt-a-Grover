@@ -9,7 +9,6 @@ import {
     TableRow
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CampaignStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { CampaignActions } from "@/components/admin/campaign-actions";
 import { getCampaignProgress } from "@/lib/types";
@@ -20,6 +19,13 @@ import { ChevronRight } from "lucide-react";
 interface CampaignListProps {
     initialCampaigns: CampaignWithFamilies[];
 }
+
+const CAMPAIGN_STATUS = {
+    DRAFT: "DRAFT",
+    ACTIVE: "ACTIVE",
+    CLOSED: "CLOSED",
+    ARCHIVED: "ARCHIVED",
+} as const;
 
 export function CampaignList({ initialCampaigns }: CampaignListProps) {
     if (initialCampaigns.length === 0) {
@@ -86,17 +92,17 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
     );
 }
 
-function StatusBadge({ status }: { status: CampaignStatus }) {
-    const styles = {
-        [CampaignStatus.DRAFT]: "bg-slate-100 text-slate-600 border-slate-200",
-        [CampaignStatus.ACTIVE]: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        [CampaignStatus.CLOSED]: "bg-amber-50 text-amber-700 border-amber-200",
-        [CampaignStatus.ARCHIVED]: "bg-rose-50 text-rose-700 border-rose-200",
+function StatusBadge({ status }: { status: CampaignWithFamilies['status'] }) {
+    const styles: Record<string, string> = {
+        [CAMPAIGN_STATUS.DRAFT]: "bg-slate-100 text-slate-600 border-slate-200",
+        [CAMPAIGN_STATUS.ACTIVE]: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        [CAMPAIGN_STATUS.CLOSED]: "bg-amber-50 text-amber-700 border-amber-200",
+        [CAMPAIGN_STATUS.ARCHIVED]: "bg-rose-50 text-rose-700 border-rose-200",
     };
 
     return (
-        <Badge variant="outline" className={`${styles[status]} font-medium text-[10px] uppercase tracking-wider`}>
-            {status === CampaignStatus.ACTIVE && (
+        <Badge variant="outline" className={`${styles[status as string] || styles[CAMPAIGN_STATUS.DRAFT]} font-medium text-[10px] uppercase tracking-wider`}>
+            {status === CAMPAIGN_STATUS.ACTIVE && (
                 <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
             )}
             {status}
