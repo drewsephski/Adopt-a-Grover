@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { CampaignStatus } from "@/lib/types";
 import { Loader2, Save } from "lucide-react";
 import { format } from "date-fns";
 
@@ -25,6 +33,7 @@ export function CampaignSettingsForm({ campaign }: CampaignSettingsFormProps) {
         endsAt: (campaign?.endsAt && !isNaN(new Date(campaign.endsAt).getTime()))
             ? format(new Date(campaign.endsAt), "yyyy-MM-dd")
             : "",
+        status: campaign?.status || CampaignStatus.DRAFT,
     });
 
     async function handleSubmit(e: React.FormEvent) {
@@ -37,6 +46,7 @@ export function CampaignSettingsForm({ campaign }: CampaignSettingsFormProps) {
                 name: formData.name,
                 startsAt: formData.startsAt ? new Date(formData.startsAt) : null,
                 endsAt: formData.endsAt ? new Date(formData.endsAt) : null,
+                status: formData.status as CampaignStatus,
             });
             toast.success("Campaign settings updated successfully");
         } catch (err: unknown) {
@@ -48,8 +58,8 @@ export function CampaignSettingsForm({ campaign }: CampaignSettingsFormProps) {
     }
 
     return (
-        <Card className="border-slate-200 shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+        <Card className="border-border shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="bg-muted/50 border-b border-border">
                 <CardTitle className="text-xl">Basic Information</CardTitle>
                 <CardDescription>
                     Identify and schedule your holiday donation campaign.
@@ -58,11 +68,11 @@ export function CampaignSettingsForm({ campaign }: CampaignSettingsFormProps) {
             <form onSubmit={handleSubmit}>
                 <CardContent className="p-8 space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="name" className="text-sm font-bold text-slate-700 ml-1">Campaign Name</Label>
+                        <Label htmlFor="name" className="text-sm font-bold text-foreground ml-1">Campaign Name</Label>
                         <Input
                             id="name"
                             placeholder="e.g. Christmas 2024"
-                            className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all text-slate-900"
+                            className="h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground"
                             required
                             value={formData.name || ""}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -71,32 +81,55 @@ export function CampaignSettingsForm({ campaign }: CampaignSettingsFormProps) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label htmlFor="startsAt" className="text-sm font-bold text-slate-700 ml-1">Start Date</Label>
+                            <Label htmlFor="startsAt" className="text-sm font-bold text-foreground ml-1">Start Date</Label>
                             <Input
                                 id="startsAt"
                                 type="date"
-                                className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all text-slate-900"
+                                className="h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground"
                                 value={formData.startsAt || ""}
                                 onChange={(e) => setFormData({ ...formData, startsAt: e.target.value })}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="endsAt" className="text-sm font-bold text-slate-700 ml-1">End Date / Deadline</Label>
+                            <Label htmlFor="endsAt" className="text-sm font-bold text-foreground ml-1">End Date / Deadline</Label>
                             <Input
                                 id="endsAt"
                                 type="date"
-                                className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all text-slate-900"
+                                className="h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground"
                                 value={formData.endsAt || ""}
                                 onChange={(e) => setFormData({ ...formData, endsAt: e.target.value })}
                             />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t border-border">
+                        <div className="space-y-2">
+                            <Label htmlFor="status" className="text-sm font-bold text-foreground ml-1">Campaign Status</Label>
+                            <Select
+                                value={formData.status}
+                                onValueChange={(value) => setFormData({ ...formData, status: value as CampaignStatus })}
+                            >
+                                <SelectTrigger className="h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground">
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={CampaignStatus.DRAFT}>Draft (Not visible to donors)</SelectItem>
+                                    <SelectItem value={CampaignStatus.ACTIVE}>Active (Visible to donors)</SelectItem>
+                                    <SelectItem value={CampaignStatus.CLOSED}>Closed (No more donations)</SelectItem>
+                                    <SelectItem value={CampaignStatus.ARCHIVED}>Archived (Hidden from dashboard)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-muted-foreground ml-1 italic">
+                                Note: Only one campaign can be Active at a time.
+                            </p>
                         </div>
                     </div>
                 </CardContent>
                 <CardFooter className="p-8 pt-0 flex justify-end">
                     <Button
                         type="submit"
-                        className="h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold shadow-lg shadow-indigo-200 transition-all active:scale-[0.98] text-white"
+                        className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98] text-primary-foreground"
                         disabled={isLoading || !formData.name.trim()}
                     >
                         {isLoading ? (

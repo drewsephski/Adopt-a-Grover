@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Heart, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection({ campaignName }: { campaignName?: string }) {
     const scrollToBrowse = () => {
@@ -13,7 +14,7 @@ export function HeroSection({ campaignName }: { campaignName?: string }) {
             {/* Decorative background elements */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-muted/50 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-accent/50 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[30%] bg-accent/30 rounded-full blur-[100px]" />
             </div>
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -48,8 +49,11 @@ export function HeroSection({ campaignName }: { campaignName?: string }) {
                             variant="outline"
                             size="lg"
                             className="h-14 px-8 text-md font-bold rounded-2xl border-border hover:bg-muted transition-all"
+                            asChild
                         >
-                            Learn More
+                            <Link href="/how-it-works">
+                                Learn More
+                            </Link>
                         </Button>
                     </div>
                 </div>

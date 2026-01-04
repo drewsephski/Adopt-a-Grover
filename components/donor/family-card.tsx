@@ -3,88 +3,124 @@
 import {
     Card,
     CardContent,
-    CardFooter,
     CardHeader,
     CardTitle
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getFamilyProgress, getAvailableQuantity } from "@/lib/types";
-import type { FamilyWithGifts, GiftWithClaims } from "@/lib/types";
+import { getFamilyProgress, getAvailableQuantity, groupGiftsByPerson, getPersonProgress, isPersonFullyClaimed } from "@/lib/types";
+import type { FamilyWithGifts, GiftWithClaims, PersonWithGifts } from "@/lib/types";
 import {
     ExternalLink,
     Users,
-    CheckCircle2
+    CheckCircle2,
+    User,
+    Gift,
+    Heart
 } from "lucide-react";
 import { ClaimDialog } from "@/components/donor/claim-dialog";
 import { AdoptFamilyDialog } from "@/components/donor/adopt-family-dialog";
+import { AdoptPersonDialog } from "@/components/donor/adopt-person-dialog";
 
 export function FamilyCard({ family }: { family: FamilyWithGifts }) {
     const stats = getFamilyProgress(family);
     const isComplete = stats.percentComplete === 100;
+    const persons = groupGiftsByPerson(family);
 
     return (
-        <Card className={`group flex flex-col h-full border-border shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden rounded-3xl ${isComplete ? "opacity-75 bg-muted/50" : "bg-card"}`}>
-            <CardHeader className="pb-4">
-                <div className="flex items-start justify-between mb-2">
-                    <div className="p-2.5 rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                        <Users className="h-6 w-6 text-primary" />
-                    </div>
-                    <Badge
-                        variant="outline"
-                        className={`font-bold text-[10px] uppercase tracking-wider ${isComplete
-                            ? "bg-primary/10 text-primary border-primary/20"
-                            : "bg-secondary/10 text-secondary-foreground border-secondary/20"
-                            }`}
-                    >
-                        {isComplete ? "Fully Claimed" : `${stats.totalGifts - stats.claimedGifts} gifts left`}
+        <Card className="overflow-hidden border-border/50 hover:border-primary/20 transition-all hover:shadow-md group bg-card">
+            <CardHeader className="bg-muted/30 pb-4">
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg group-hover:text-primary transition-colors flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        {family.alias}
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-background/50 font-mono text-[10px]">
+                        {persons.length} {persons.length === 1 ? 'person' : 'people'}
                     </Badge>
                 </div>
-                <CardTitle className="text-2xl font-bold tracking-tight text-foreground">{family.alias}</CardTitle>
-            </CardHeader>
-
-            <CardContent className="flex-1 space-y-6">
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="text-muted-foreground uppercase tracking-widest">Progress</span>
-                        <span className={isComplete ? "text-primary" : "text-foreground"}>{stats.percentComplete}%</span>
-                    </div>
-                    <div className="h-2 w-full bg-border rounded-full overflow-hidden">
-                        <div
-                            className={`h-full rounded-full transition-all duration-1000 ${isComplete ? "bg-primary" : "bg-secondary"
-                                }`}
-                            style={{ width: `${stats.percentComplete}%` }}
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-4">
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Shopping List</p>
-                    <div className="space-y-3">
-                        {family.gifts.map((gift) => (
-                            <GiftRow key={gift.id} gift={gift} />
-                        ))}
-                    </div>
-                </div>
-            </CardContent>
-
-            <CardFooter className="pt-6 border-t border-border bg-muted/50">
-                {!isComplete ? (
-                    <AdoptFamilyDialog family={family}>
-                        <Button
-                            className="w-full bg-foreground hover:bg-foreground/90 text-background rounded-2xl h-12 font-bold shadow-lg shadow-border transition-all active:scale-[0.98]"
-                        >
-                            Adopt Entire Family
-                        </Button>
-                    </AdoptFamilyDialog>
-                ) : (
-                    <div className="flex items-center justify-center w-full h-12 gap-2 text-primary font-bold">
-                        <CheckCircle2 className="h-5 w-5" />
-                        Everything Claimed!
+                {!isComplete && (
+                    <div className="flex items-center justify-between mt-2">
+                        <p className="text-sm text-muted-foreground">
+                            {stats.totalGifts - stats.claimedGifts} {stats.totalGifts - stats.claimedGifts === 1 ? 'gift' : 'gifts'} still needed
+                        </p>
+                        <AdoptFamilyDialog family={family} disabled={isComplete}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-lg h-8 px-4 text-xs font-bold text-primary hover:bg-primary/10 border-primary/20"
+                            >
+                                <Heart className="h-3.5 w-3.5 mr-1.5" />
+                                Adopt Family
+                            </Button>
+                        </AdoptFamilyDialog>
                     </div>
                 )}
-            </CardFooter>
+            </CardHeader>
+            <CardContent className="p-0">
+                <div className="divide-y divide-border/50">
+                    {persons.map((person: PersonWithGifts) => (
+                        <PersonSection key={person.fullName} familyId={family.id} person={person} />
+                    ))}
+                </div>
+            </CardContent>
         </Card>
+    );
+}
+
+function PersonSection({ familyId, person }: { familyId: string; person: PersonWithGifts }) {
+    const stats = getPersonProgress(person);
+    const isComplete = isPersonFullyClaimed(person);
+
+    // Format person display name with role and age
+    const getPersonDisplayName = (p: PersonWithGifts) => {
+        const role = p.role ? p.role : "Person";
+        const age = p.age ? `, ${p.age}` : "";
+        return `${role}${age}`;
+    };
+
+    const displayName = getPersonDisplayName(person);
+
+    return (
+        <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                        <User className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                        <div className="text-sm font-semibold text-foreground">{displayName}</div>
+                        {!isComplete && (
+                            <div className="text-xs text-muted-foreground">
+                                {person.gifts.filter((g: GiftWithClaims) => getAvailableQuantity(g) > 0).length} {person.gifts.filter((g: GiftWithClaims) => getAvailableQuantity(g) > 0).length === 1 ? 'item' : 'items'} left
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <AdoptPersonDialog familyId={familyId} person={person} disabled={isComplete}>
+                    {isComplete ? (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Complete
+                        </div>
+                    ) : (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-lg h-8 px-4 text-xs font-bold text-primary hover:bg-primary/10"
+                        >
+                            <Heart className="h-3.5 w-3.5 mr-1.5" />
+                            Claim
+                        </Button>
+                    )}
+                </AdoptPersonDialog>
+            </div>
+            <div className="space-y-2.5 pl-5 border-l-2 border-muted">
+                {person.gifts.map((gift: GiftWithClaims) => (
+                    <GiftRow key={gift.id} gift={gift} />
+                ))}
+            </div>
+        </div>
     );
 }
 
@@ -93,52 +129,47 @@ function GiftRow({ gift }: { gift: GiftWithClaims }) {
     const isClaimed = available === 0;
 
     return (
-        <div className={`group/item flex items-center justify-between p-3 rounded-2xl border transition-all ${isClaimed
-            ? "bg-primary/10 border-primary/20 opacity-60"
-            : "bg-card border-border hover:border-primary/20 hover:bg-primary/5"
-            }`}>
-            <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center gap-2 mb-1">
-                    <p className={`text-sm font-bold truncate ${isClaimed ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                        {gift.name}
-                    </p>
+        <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground flex-1 min-w-0">
+                    <Gift className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <span className={isClaimed ? "line-through text-muted-foreground" : ""}>{gift.name}</span>
                     {gift.productUrl && !isClaimed && (
                         <a
                             href={gift.productUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-primary transition-colors"
+                            className="text-muted-foreground hover:text-primary transition-colors flex-shrink-0"
+                            title="View product details"
                         >
-                            <ExternalLink className="h-3 w-3" />
+                            <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
-                    {isClaimed ? (
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Fully Claimed</span>
-                    ) : (
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {available} of {gift.quantity} available
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    {!isClaimed && (
+                        <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                            {available} {available === 1 ? 'needed' : 'needed'}
                         </span>
                     )}
+                    <ClaimDialog gift={gift} disabled={isClaimed}>
+                        {isClaimed ? (
+                            <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                Donated
+                            </div>
+                        ) : (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="rounded-lg h-7 px-3 text-xs font-bold text-primary hover:bg-primary/10"
+                            >
+                                Donate
+                            </Button>
+                        )}
+                    </ClaimDialog>
                 </div>
             </div>
-
-            {!isClaimed && (
-                <ClaimDialog gift={gift}>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-xl h-9 px-4 text-primary font-bold hover:bg-primary/10"
-                    >
-                        Claim
-                    </Button>
-                </ClaimDialog>
-            )}
-
-            {isClaimed && (
-                <CheckCircle2 className="h-5 w-5 text-primary mr-2" />
-            )}
         </div>
     );
 }

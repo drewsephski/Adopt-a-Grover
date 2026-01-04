@@ -36,9 +36,10 @@ import {
 interface ClaimDialogProps {
     gift: GiftWithClaims;
     children: React.ReactNode;
+    disabled?: boolean;
 }
 
-export function ClaimDialog({ gift, children }: ClaimDialogProps) {
+export function ClaimDialog({ gift, children, disabled }: ClaimDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -80,24 +81,35 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
         }, 300);
     }
 
+    function handleOpenChange(open: boolean) {
+        if (!open && step === 2) {
+            return;
+        }
+        setIsOpen(open);
+    }
+
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                {children}
-            </DialogTrigger>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+            {disabled ? (
+                children
+            ) : (
+                <DialogTrigger asChild>
+                    {children}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none rounded-[2rem] shadow-2xl">
                 {step === 1 ? (
                     <form onSubmit={handleSubmit} className="flex flex-col">
-                        <div className="bg-rose-50/50 p-8 pb-6">
-                            <div className="bg-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm mb-4">
-                                <Heart className="h-7 w-7 text-rose-500 fill-rose-500/10" />
+                        <div className="bg-primary/10 p-8 pb-6">
+                            <div className="bg-background w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                                <Heart className="h-7 w-7 text-primary fill-primary/10" />
                             </div>
                             <DialogHeader className="space-y-1">
-                                <DialogTitle className="text-2xl font-bold tracking-tight text-slate-900">
-                                    Claim &quot;{gift.name}&quot;
+                                <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
+                                    Claim "{gift.name}"
                                 </DialogTitle>
-                                <DialogDescription className="text-slate-500 text-base">
-                                    Ready to brighten someone&apos;s holiday? Just fill in your details below.
+                                <DialogDescription className="text-muted-foreground text-base">
+                                    Ready to brighten someone's holiday? Just fill in your details below.
                                 </DialogDescription>
                             </DialogHeader>
                         </div>
@@ -105,13 +117,13 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
                         <div className="p-8 space-y-6">
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="donorName" className="text-sm font-bold text-slate-700 ml-1">Your Name</Label>
+                                    <Label htmlFor="donorName" className="text-sm font-bold text-foreground ml-1">Your Name</Label>
                                     <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="donorName"
                                             placeholder="Jane Doe"
-                                            className="pl-11 h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all text-slate-900"
+                                            className="pl-11 h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground"
                                             required
                                             value={formData.donorName}
                                             onChange={(e) => setFormData({ ...formData, donorName: e.target.value })}
@@ -120,30 +132,30 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="donorEmail" className="text-sm font-bold text-slate-700 ml-1">Email Address</Label>
+                                    <Label htmlFor="donorEmail" className="text-sm font-bold text-foreground ml-1">Email Address</Label>
                                     <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="donorEmail"
                                             type="email"
                                             placeholder="jane@example.com"
-                                            className="pl-11 h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all text-slate-900"
+                                            className="pl-11 h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground"
                                             required
                                             value={formData.donorEmail}
                                             onChange={(e) => setFormData({ ...formData, donorEmail: e.target.value })}
                                         />
                                     </div>
-                                    <p className="text-[10px] text-slate-400 ml-1 italic">We&apos;ll send a confirmation and drop-off instructions.</p>
+                                    <p className="text-[10px] text-muted-foreground ml-1 italic">We'll send a confirmation and drop-off instructions.</p>
                                 </div>
 
                                 {available > 1 && (
                                     <div className="space-y-2">
-                                        <Label htmlFor="quantity" className="text-sm font-bold text-slate-700 ml-1">Quantity</Label>
+                                        <Label htmlFor="quantity" className="text-sm font-bold text-foreground ml-1">Quantity</Label>
                                         <Select
                                             value={formData.quantity.toString()}
                                             onValueChange={(value) => setFormData({ ...formData, quantity: parseInt(value) })}
                                         >
-                                            <SelectTrigger id="quantity" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all text-slate-900 font-medium">
+                                            <SelectTrigger id="quantity" className="h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground font-medium">
                                                 <SelectValue placeholder="Select quantity" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -163,7 +175,7 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="flex-1 h-12 rounded-xl font-bold text-slate-500"
+                                className="flex-1 h-12 rounded-xl font-bold text-muted-foreground"
                                 onClick={handleClose}
                                 disabled={isLoading}
                             >
@@ -171,7 +183,7 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
                             </Button>
                             <Button
                                 type="submit"
-                                className="flex-[2] h-12 rounded-xl bg-rose-500 hover:bg-rose-600 font-bold shadow-lg shadow-rose-200 transition-all active:scale-[0.98] text-white"
+                                className="flex-[2] h-12 rounded-xl bg-destructive hover:bg-destructive/90 font-bold shadow-lg shadow-destructive/20 transition-all active:scale-[0.98] text-background"
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
@@ -184,45 +196,45 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
                     </form>
                 ) : (
                     <div className="flex flex-col">
-                        <div className="bg-emerald-50/50 p-10 flex flex-col items-center text-center">
-                            <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl mb-6 animate-in zoom-in duration-500">
-                                <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                        <div className="bg-primary/10 p-10 flex flex-col items-center text-center">
+                            <div className="bg-background w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl mb-6 animate-in zoom-in duration-500">
+                                <CheckCircle2 className="h-10 w-10 text-primary" />
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Thank You, {formData.donorName}!</h2>
-                            <p className="text-slate-500">You&apos;ve successfully claimed this gift.</p>
+                            <h2 className="text-2xl font-bold text-foreground mb-2">Thank You, {formData.donorName}!</h2>
+                            <p className="text-muted-foreground">You've successfully claimed this gift.</p>
                         </div>
 
                         <div className="p-8 space-y-6">
                             <div className="space-y-4">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Important Next Steps</h3>
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">Important Next Steps</h3>
 
-                                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex gap-4">
-                                    <div className="p-2 h-fit rounded-lg bg-white shadow-sm">
-                                        <MapPin className="h-5 w-5 text-indigo-500" />
+                                <div className="bg-muted rounded-2xl p-5 border border-border flex gap-4">
+                                    <div className="p-2 h-fit rounded-lg bg-background shadow-sm">
+                                        <MapPin className="h-5 w-5 text-secondary-foreground" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900 mb-0.5">Drop-off Location</p>
-                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                        <p className="text-sm font-bold text-foreground mb-0.5">Drop-off Location</p>
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
                                             624 Ellington Court<br />
                                             Fox River Grove, IL 60021
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex gap-4">
-                                    <div className="p-2 h-fit rounded-lg bg-white shadow-sm">
-                                        <Calendar className="h-5 w-5 text-amber-500" />
+                                <div className="bg-muted rounded-2xl p-5 border border-border flex gap-4">
+                                    <div className="p-2 h-fit rounded-lg bg-background shadow-sm">
+                                        <Calendar className="h-5 w-5 text-accent-foreground" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900 mb-0.5">Deadline</p>
-                                        <p className="text-sm text-slate-500">Please drop off by Monday, Dec 16th.</p>
+                                        <p className="text-sm font-bold text-foreground mb-0.5">Deadline</p>
+                                        <p className="text-sm text-muted-foreground">Please drop off by Monday, Dec 16th.</p>
                                     </div>
                                 </div>
                             </div>
 
                             <Button
                                 onClick={handleClose}
-                                className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 font-bold transition-all active:scale-[0.98] text-white"
+                                className="w-full h-12 rounded-xl bg-foreground hover:bg-foreground/90 font-bold transition-all active:scale-[0.98] text-background"
                             >
                                 Done
                             </Button>

@@ -1,10 +1,11 @@
 import { getCampaignById } from "@/lib/actions/campaign";
 import { getCampaignProgress } from "@/lib/types";
 import {
-    Users,
     Settings2,
-    PlusCircle,
+    Heart,
     Box,
+    Users,
+    PlusCircle,
     CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
@@ -13,6 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FamilyList } from "@/components/admin/family-list";
 import { CreateFamilyDialog } from "@/components/admin/create-family-dialog";
+import { ImportCSVDialog } from "@/components/admin/import-csv-dialog";
+import { ExportButton } from "@/components/admin/export-button";
+import { FileUp } from "lucide-react";
 
 export default async function CampaignDetailPage({
     params,
@@ -31,22 +35,22 @@ export default async function CampaignDetailPage({
     return (
         <div className="space-y-8">
             {/* Breadcrumbs & Navigation */}
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Link href="/admin/campaigns" className="hover:text-indigo-600 transition-colors">Campaigns</Link>
-                <span className="text-slate-300">/</span>
-                <span className="text-slate-900 font-medium">{campaign.name}</span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Link href="/admin/campaigns" className="hover:text-primary transition-colors">Campaigns</Link>
+                <span className="text-muted-foreground/30">/</span>
+                <span className="text-foreground font-medium">{campaign.name}</span>
             </div>
 
             {/* Header */}
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between border-b border-slate-200 pb-8">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between border-b border-border pb-8">
                 <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight uppercase">{campaign.name}</h1>
-                        <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-indigo-100 uppercase tracking-wider text-[10px]">
+                        <h1 className="text-3xl font-bold text-foreground tracking-tight uppercase">{campaign.name}</h1>
+                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 uppercase tracking-wider text-[10px]">
                             {campaign.status}
                         </Badge>
                     </div>
-                    <p className="text-slate-500 max-w-2xl">
+                    <p className="text-muted-foreground max-w-2xl">
                         Manage the families and gifts for this campaign. All information added here is used to coordinate donations.
                     </p>
                 </div>
@@ -57,8 +61,14 @@ export default async function CampaignDetailPage({
                             Settings
                         </Link>
                     </Button>
+                    <ImportCSVDialog campaignId={campaign.id}>
+                        <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:text-primary">
+                            <FileUp className="mr-2 h-4 w-4" />
+                            Import Data
+                        </Button>
+                    </ImportCSVDialog>
                     <CreateFamilyDialog campaignId={campaign.id}>
-                        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                        <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Add Family
                         </Button>
@@ -66,20 +76,58 @@ export default async function CampaignDetailPage({
                 </div>
             </div>
 
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <QuickActionButton
+                    href={`/admin/gifts?campaignId=${campaign.id}`}
+                    icon={<Box className="h-4 w-4" />}
+                    label="View All Gifts"
+                />
+                <QuickActionButton
+                    href={`/admin/claims?campaignId=${campaign.id}`}
+                    icon={<Heart className="h-4 w-4" />}
+                    label="View All Claims"
+                />
+                <ExportButton
+                    campaignId={campaign.id}
+                    campaignName={campaign.name}
+                    type="claims"
+                    label="Export Claims"
+                />
+                <ExportButton
+                    campaignId={campaign.id}
+                    campaignName={campaign.name}
+                    type="inventory"
+                    label="Export Inventory"
+                />
+                <ImportCSVDialog campaignId={campaign.id}>
+                    <Button variant="outline" className="h-12 justify-start gap-2 rounded-xl bg-card border-border hover:bg-primary/5 hover:text-primary transition-all">
+                        <FileUp className="h-4 w-4" />
+                        <span>Import Document</span>
+                    </Button>
+                </ImportCSVDialog>
+                <Button variant="outline" className="h-12 justify-start gap-2 rounded-xl bg-card border-border hover:bg-primary/5 hover:text-primary transition-all" asChild>
+                    <Link href={`/admin/campaigns/${campaign.id}/settings`}>
+                        <Settings2 className="h-4 w-4" />
+                        <span>Settings</span>
+                    </Link>
+                </Button>
+            </div>
+
             {/* Campaign Summary Stats */}
             <div className="grid gap-6 md:grid-cols-3">
                 <SummaryCard
-                    icon={<Users className="h-5 w-5 text-indigo-600" />}
+                    icon={<Users className="h-5 w-5 text-primary" />}
                     label="Families"
                     value={stats.totalFamilies.toString()}
                 />
                 <SummaryCard
-                    icon={<Box className="h-5 w-5 text-blue-600" />}
+                    icon={<Box className="h-5 w-5 text-primary" />}
                     label="Total Gifts"
                     value={stats.totalQuantity.toString()}
                 />
                 <SummaryCard
-                    icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
+                    icon={<CheckCircle2 className="h-5 w-5 text-primary" />}
                     label="Claimed Items"
                     value={stats.claimedQuantity.toString()}
                     progress={stats.percentComplete}
@@ -89,15 +137,34 @@ export default async function CampaignDetailPage({
             {/* Families List */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-slate-900 uppercase">Participating Families</h2>
-                    <span className="text-sm text-slate-500">{campaign.families.length} families added</span>
+                    <h2 className="text-xl font-semibold text-foreground uppercase">Participating Families</h2>
+                    <span className="text-sm text-muted-foreground">{campaign.families.length} families added</span>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
                     <FamilyList families={campaign.families} />
                 </div>
             </div>
         </div>
+    );
+}
+
+function QuickActionButton({
+    href,
+    icon,
+    label
+}: {
+    href: string;
+    icon: React.ReactNode;
+    label: string;
+}) {
+    return (
+        <Button variant="outline" className="h-12 justify-start gap-2 rounded-xl bg-card border-border hover:bg-primary/5 hover:text-primary transition-all" asChild>
+            <Link href={href}>
+                {icon}
+                <span>{label}</span>
+            </Link>
+        </Button>
     );
 }
 
@@ -113,21 +180,21 @@ function SummaryCard({
     progress?: number;
 }) {
     return (
-        <div className="flex flex-col gap-2 p-6 rounded-xl border border-slate-200 bg-white">
+        <div className="flex flex-col gap-2 p-6 rounded-xl border border-border bg-card">
             <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                <div className="p-2 rounded-lg bg-muted border border-border">
                     {icon}
                 </div>
-                <span className="text-sm font-medium text-slate-500">{label}</span>
+                <span className="text-sm font-medium text-muted-foreground">{label}</span>
             </div>
             <div className="flex items-end justify-between gap-4 pt-2">
-                <span className="text-3xl font-bold text-slate-900">{value}</span>
+                <span className="text-3xl font-bold text-foreground">{value}</span>
                 {progress !== undefined && (
                     <div className="flex flex-col items-end gap-1 mb-1">
-                        <span className="text-xs font-semibold text-emerald-600">{progress}% complete</span>
-                        <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <span className="text-xs font-semibold text-primary">{progress}% complete</span>
+                        <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-emerald-500 rounded-full"
+                                className="h-full bg-primary rounded-full"
                                 style={{ width: `${progress}%` }}
                             />
                         </div>

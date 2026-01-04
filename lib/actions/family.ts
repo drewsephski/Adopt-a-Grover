@@ -62,6 +62,15 @@ export async function getFamilyById(familyId: string) {
         where: { id: familyId },
         include: {
             campaign: true,
+            persons: {
+                include: {
+                    gifts: {
+                        include: {
+                            claims: true,
+                        },
+                    },
+                },
+            },
             gifts: {
                 include: {
                     claims: true,

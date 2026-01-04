@@ -20,7 +20,7 @@ import {
     Settings
 } from "lucide-react";
 import { updateCampaignStatus, deleteCampaign } from "@/lib/actions/campaign";
-import type { CampaignStatus } from "@prisma/client";
+import { CampaignStatus } from "@/lib/types";
 import type { CampaignWithFamilies } from "@/lib/types";
 import { toast } from "sonner";
 import {
@@ -48,8 +48,9 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
         try {
             await updateCampaignStatus(campaign.id, status);
             toast.success(`Campaign ${status.toLowerCase()}ed`);
-        } catch (error: Error | any) {
-            toast.error(error.message || "Failed to update status");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Failed to update status";
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -86,37 +87,37 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
 
                     <DropdownMenuItem asChild>
                         <Link href={`/admin/campaigns/${campaign.id}`}>
-                            <Settings className="mr-2 h-4 w-4 text-slate-400" />
+                            <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
                             Manage Details
                         </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
 
-                    {campaign.status === "DRAFT" && (
-                        <DropdownMenuItem onClick={() => handleStatusUpdate("ACTIVE")}>
-                            <Play className="mr-2 h-4 w-4 text-emerald-500" />
+                    {campaign.status === CampaignStatus.DRAFT && (
+                        <DropdownMenuItem onClick={() => handleStatusUpdate(CampaignStatus.ACTIVE)}>
+                            <Play className="mr-2 h-4 w-4 text-primary" />
                             Activate Campaign
                         </DropdownMenuItem>
                     )}
 
-                    {campaign.status === "ACTIVE" && (
-                        <DropdownMenuItem onClick={() => handleStatusUpdate("CLOSED")}>
-                            <PauseCircle className="mr-2 h-4 w-4 text-amber-500" />
+                    {campaign.status === CampaignStatus.ACTIVE && (
+                        <DropdownMenuItem onClick={() => handleStatusUpdate(CampaignStatus.CLOSED)}>
+                            <PauseCircle className="mr-2 h-4 w-4 text-secondary-foreground" />
                             Close Donations
                         </DropdownMenuItem>
                     )}
 
-                    {(campaign.status === "CLOSED" || campaign.status === "ACTIVE") && (
-                        <DropdownMenuItem onClick={() => handleStatusUpdate("ARCHIVED")}>
-                            <Archive className="mr-2 h-4 w-4 text-slate-400" />
+                    {(campaign.status === CampaignStatus.CLOSED || campaign.status === CampaignStatus.ACTIVE) && (
+                        <DropdownMenuItem onClick={() => handleStatusUpdate(CampaignStatus.ARCHIVED)}>
+                            <Archive className="mr-2 h-4 w-4 text-muted-foreground" />
                             Archive Campaign
                         </DropdownMenuItem>
                     )}
 
-                    {campaign.status === "ARCHIVED" && (
-                        <DropdownMenuItem onClick={() => handleStatusUpdate("DRAFT")}>
-                            <Play className="mr-2 h-4 w-4 text-slate-400" />
+                    {campaign.status === CampaignStatus.ARCHIVED && (
+                        <DropdownMenuItem onClick={() => handleStatusUpdate(CampaignStatus.DRAFT)}>
+                            <Play className="mr-2 h-4 w-4 text-muted-foreground" />
                             Restore to Draft
                         </DropdownMenuItem>
                     )}
@@ -125,7 +126,7 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
 
                     <DropdownMenuItem
                         onClick={() => setShowDeleteDialog(true)}
-                        className="text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete Campaign
@@ -148,7 +149,7 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
                                 e.preventDefault();
                                 handleDelete();
                             }}
-                            className="bg-rose-600 hover:bg-rose-700"
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                             disabled={isLoading}
                         >
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

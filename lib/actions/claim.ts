@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { CampaignStatus, Prisma } from "@prisma/client";
+import { CampaignStatus } from "@/lib/types";
 import { getAvailableQuantity } from "@/lib/types";
 import { sendClaimConfirmation } from "@/lib/email";
 
@@ -16,7 +16,7 @@ export async function claimGift(
     quantity: number = 1
 ) {
     // Start a transaction for atomicity
-    return await db.$transaction(async (tx: Prisma.TransactionClient) => {
+    return await db.$transaction(async (tx: any) => {
         // Get the gift with its claims and campaign status
         const gift = await tx.gift.findUnique({
             where: { id: giftId },
@@ -86,7 +86,7 @@ export async function adoptFamily(
     donorName: string,
     donorEmail: string
 ) {
-    return await db.$transaction(async (tx: Prisma.TransactionClient) => {
+    return await db.$transaction(async (tx: any) => {
         // Get family with all gifts and their claims
         const family = await tx.family.findUnique({
             where: { id: familyId },
@@ -148,6 +148,88 @@ export async function adoptFamily(
                     name: g.name,
                     quantity: getAvailableQuantity(g),
                     familyAlias: family.alias
+                }))
+        });
+
+        return claims;
+    });
+}
+
+// ============================================
+// ADOPT PERSON (Power Action)
+// ============================================
+export async function adoptPerson(
+    familyId: string,
+    personId: string,
+    donorName: string,
+    donorEmail: string
+) {
+    return await db.$transaction(async (tx: any) => {
+        // Get person with their gifts and family info
+        const person = await tx.person.findUnique({
+            where: { id: personId },
+            include: {
+                family: {
+                    include: {
+                        campaign: true,
+                    },
+                },
+                gifts: {
+                    include: {
+                        claims: true,
+                    },
+                },
+            },
+        });
+
+        if (!person) {
+            throw new Error("Person not found");
+        }
+
+        // Validate campaign is active
+        if (person.family.campaign.status !== CampaignStatus.ACTIVE) {
+            throw new Error("This campaign is not currently accepting donations");
+        }
+
+        // Create claims for all of this person's gifts with available quantity
+        const claims = [];
+        for (const gift of person.gifts) {
+            const available = getAvailableQuantity(gift);
+            if (available > 0) {
+                const claim = await tx.claim.create({
+                    data: {
+                        giftId: gift.id,
+                        donorName,
+                        donorEmail,
+                        quantity: available,
+                    },
+                });
+                claims.push(claim);
+            }
+        }
+
+        if (claims.length === 0) {
+            throw new Error("All gifts for this person have already been claimed");
+        }
+
+        // Revalidate paths
+        revalidatePath("/");
+        revalidatePath("/admin");
+        revalidatePath("/admin/families");
+        revalidatePath(`/admin/campaigns/${person.family.campaignId}`);
+
+        // Send confirmation email with all claimed items
+        await sendClaimConfirmation({
+            donorName,
+            donorEmail,
+            items: person.gifts
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .filter((g: any) => getAvailableQuantity(g) > 0)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .map((g: any) => ({
+                    name: g.name,
+                    quantity: getAvailableQuantity(g),
+                    familyAlias: person.family.alias
                 }))
         });
 

@@ -14,9 +14,13 @@ import {
     MoreHorizontal,
     Trash2,
     Settings2,
-    Loader2
+    Loader2,
+    Edit2,
+    Users
 } from "lucide-react";
 import { deleteFamily } from "@/lib/actions/family";
+import { EditFamilyDialog } from "./edit-family-dialog";
+import { ManagePersonsDialog } from "./manage-persons-dialog";
 import { toast } from "sonner";
 import {
     AlertDialog,
@@ -70,16 +74,32 @@ export function FamilyActions({ family }: FamilyActionsProps) {
 
                     <DropdownMenuItem asChild>
                         <Link href={`/admin/families/${family.id}`}>
-                            <Settings2 className="mr-2 h-4 w-4 text-slate-400" />
+                            <Settings2 className="mr-2 h-4 w-4 text-muted-foreground" />
                             Manage Gifts
                         </Link>
                     </DropdownMenuItem>
+
+                    <EditFamilyDialog family={family}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Edit2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Edit Details
+                        </DropdownMenuItem>
+                    </EditFamilyDialog>
+
+                    <DropdownMenuSeparator />
+
+                    <ManagePersonsDialog familyId={family.id} familyAlias={family.alias}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Manage People
+                        </DropdownMenuItem>
+                    </ManagePersonsDialog>
 
                     <DropdownMenuSeparator />
 
                     <DropdownMenuItem
                         onClick={() => setShowDeleteDialog(true)}
-                        className="text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete Family
@@ -102,7 +122,7 @@ export function FamilyActions({ family }: FamilyActionsProps) {
                                 e.preventDefault();
                                 handleDelete();
                             }}
-                            className="bg-rose-600 hover:bg-rose-700"
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                             disabled={isLoading}
                         >
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

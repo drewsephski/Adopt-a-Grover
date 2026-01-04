@@ -43,12 +43,31 @@ model Family {
   campaignId String
   campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
+  persons    Person[]
   gifts      Gift[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@index([campaignId])
+}
+
+model Person {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  role       String?  // e.g., "Boy", "Girl", "Mother", "Father"
+  age        Int?     // Age in years
+
+  familyId   String
+  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  gifts      Gift[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([familyId])
 }
 
 model Gift {
@@ -61,12 +80,16 @@ model Gift {
   familyId    String
   family      Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
+  personId    String?
+  person      Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
+
   claims      Claim[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([familyId])
+  @@index([personId])
 }
 
 model Claim {

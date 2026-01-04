@@ -3,10 +3,12 @@ import Link from "next/link";
 import {
     Package,
     Users,
-    Gift,
     ClipboardList,
     LayoutDashboard,
-    Settings
+    Settings,
+    Heart,
+    Box,
+    History
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -16,13 +18,13 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="flex min-h-screen bg-slate-50/50">
+        <div className="flex min-h-screen bg-sidebar">
             {/* Sidebar */}
-            <aside className="fixed left-0 top-0 hidden h-full w-64 border-r bg-white lg:block">
+            <aside className="fixed left-0 top-0 hidden h-full w-64 border-r border-sidebar-border bg-sidebar lg:block">
                 <div className="flex h-full flex-col">
                     <div className="flex h-14 items-center border-b px-6">
-                        <Link href="/admin" className="flex items-center gap-2 font-semibold text-slate-900">
-                            <Package className="h-5 w-5 text-indigo-600" />
+                        <Link href="/admin" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+                            <Package className="h-5 w-5 text-sidebar-primary" />
                             <span>Adopt a Grover</span>
                         </Link>
                     </div>
@@ -37,8 +39,14 @@ export default function AdminLayout({
                         <AdminNavLink href="/admin/families" icon={<Users className="h-4 w-4" />}>
                             Families
                         </AdminNavLink>
-                        <AdminNavLink href="/admin/claims" icon={<Gift className="h-4 w-4" />}>
+                        <AdminNavLink href="/admin/gifts" icon={<Box className="h-4 w-4" />}>
+                            Gifts
+                        </AdminNavLink>
+                        <AdminNavLink href="/admin/claims" icon={<Heart className="h-4 w-4" />}>
                             Claims
+                        </AdminNavLink>
+                        <AdminNavLink href="/admin/past-events" icon={<History className="h-4 w-4" />}>
+                            Past Events
                         </AdminNavLink>
                     </nav>
 
@@ -52,10 +60,6 @@ export default function AdminLayout({
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between rounded-lg bg-muted p-2">
-                            <span className="text-xs font-medium text-muted-foreground">Theme</span>
-                            <ThemeToggle />
-                        </div>
                         <Link href="/admin/settings" className="flex items-center justify-center rounded-lg bg-muted p-2 text-muted-foreground hover:text-foreground transition-colors">
                             <Settings className="h-4 w-4" />
                         </Link>
@@ -68,7 +72,7 @@ export default function AdminLayout({
                 {/* Header (Mobile) */}
                 <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 lg:hidden">
                     <Link href="/admin" className="flex items-center gap-2 font-semibold">
-                        <Package className="h-5 w-5 text-indigo-600" />
+                        <Package className="h-5 w-5 text-sidebar-primary" />
                         <span>Adopt a Grover</span>
                     </Link>
                     <div className="flex items-center gap-2">
@@ -97,7 +101,7 @@ function AdminNavLink({
     return (
         <Link
             href={href}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-600"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
             {icon}
             {children}

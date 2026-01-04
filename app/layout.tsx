@@ -3,6 +3,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -38,9 +40,11 @@ export default function RootLayout({
       >
         <html lang="en" className={inter.variable} suppressHydrationWarning>
           <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+            className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
           >
-            {children}
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
             <Toaster position="top-center" />
           </body>
         </html>

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { adoptFamily } from "@/lib/actions/claim";
-import type { FamilyWithGifts } from "@/lib/types";
+import type { FamilyWithGifts, GiftWithClaims } from "@/lib/types";
+import { getAvailableQuantity } from "@/lib/types";
 import { toast } from "sonner";
 import {
     Dialog,
@@ -12,6 +13,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,9 +30,10 @@ import {
 interface AdoptFamilyDialogProps {
     family: FamilyWithGifts;
     children: React.ReactNode;
+    disabled?: boolean;
 }
 
-export function AdoptFamilyDialog({ family, children }: AdoptFamilyDialogProps) {
+export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -68,11 +71,24 @@ export function AdoptFamilyDialog({ family, children }: AdoptFamilyDialogProps) 
         }, 300);
     }
 
+    function handleOpenChange(open: boolean) {
+        // Prevent closing the dialog when on the thank you screen (step 2)
+        // Only allow closing if the user explicitly clicks the Close button
+        if (!open && step === 2) {
+            return;
+        }
+        setIsOpen(open);
+    }
+
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                {children}
-            </DialogTrigger>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+            {disabled ? (
+                children
+            ) : (
+                <DialogTrigger asChild>
+                    {children}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden border-none rounded-[2rem] shadow-2xl">
                 {step === 1 ? (
                     <form onSubmit={handleSubmit} className="flex flex-col">
@@ -125,14 +141,28 @@ export function AdoptFamilyDialog({ family, children }: AdoptFamilyDialogProps) 
                                 </div>
                             </div>
 
-                            <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10">
-                                <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1">Items you are claiming:</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {family.gifts.map(g => (
-                                        <span key={g.id} className="text-[10px] bg-background px-2 py-1 rounded-md text-foreground border border-primary/10">
-                                            {g.name}
-                                        </span>
-                                    ))}
+                            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10 space-y-4">
+                                <div className="flex items-center justify-between border-b border-primary/10 pb-3">
+                                    <p className="text-xs font-bold text-primary uppercase tracking-widest">Your Impact Summary</p>
+                                    <Badge variant="secondary" className="bg-primary/20 text-primary border-none text-[10px] font-bold">
+                                        {family.gifts.filter((g: GiftWithClaims) => getAvailableQuantity(g) > 0).length} ITEMS
+                                    </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/20">
+                                    {family.gifts
+                                        .filter((g: GiftWithClaims) => getAvailableQuantity(g) > 0)
+                                        .map((g: GiftWithClaims) => (
+                                            <div key={g.id} className="flex items-center gap-3 bg-background/50 p-2.5 rounded-xl border border-primary/5 group/item transition-colors hover:bg-background">
+                                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                                    {getAvailableQuantity(g)}x
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold text-foreground truncate">{g.name}</p>
+                                                    {g.description && <p className="text-[10px] text-muted-foreground truncate">{g.description}</p>}
+                                                </div>
+                                            </div>
+                                        ))}
                                 </div>
                             </div>
                         </div>

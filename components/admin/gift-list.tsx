@@ -10,15 +10,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { getAvailableQuantity, getGiftStatus, getClaimedQuantity } from "@/lib/types";
-import type { GiftWithClaims } from "@/lib/types";
+import type { GiftWithClaims, GiftWithFamily } from "@/lib/types";
 import { GiftActions } from "./gift-actions";
-import { ExternalLink, ShoppingCart } from "lucide-react";
+import { ExternalLink, ShoppingCart, User } from "lucide-react";
 
 interface GiftListProps {
-    gifts: GiftWithClaims[];
+    gifts: (GiftWithClaims | GiftWithFamily)[];
+    showFamily?: boolean;
 }
 
-export function GiftList({ gifts }: GiftListProps) {
+export function GiftList({ gifts, showFamily = false }: GiftListProps) {
     if (gifts.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -35,6 +36,7 @@ export function GiftList({ gifts }: GiftListProps) {
         <Table>
             <TableHeader>
                 <TableRow className="bg-muted/50">
+                    {showFamily && <TableHead>Family</TableHead>}
                     <TableHead className="w-[300px]">Gift Name</TableHead>
                     <TableHead>Required</TableHead>
                     <TableHead>Claimed</TableHead>
@@ -47,9 +49,18 @@ export function GiftList({ gifts }: GiftListProps) {
                     const claimedTotal = getClaimedQuantity(gift);
                     const available = getAvailableQuantity(gift);
                     const status = getGiftStatus(gift);
+                    // Get person name if gift is associated with a person
+                    const personName = "person" in gift && gift.person
+                        ? `${gift.person.firstName} ${gift.person.lastName}`
+                        : null;
 
                     return (
                         <TableRow key={gift.id} className="group transition-colors hover:bg-muted/30">
+                            {showFamily && (
+                                <TableCell className="font-medium text-primary">
+                                    {"family" in gift ? (gift as GiftWithFamily).family?.alias : "N/A"}
+                                </TableCell>
+                            )}
                             <TableCell>
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
@@ -70,6 +81,14 @@ export function GiftList({ gifts }: GiftListProps) {
                                         <p className="text-xs text-muted-foreground line-clamp-1 max-w-[250px] font-normal" title={gift.description}>
                                             {gift.description}
                                         </p>
+                                    )}
+                                    {personName && (
+                                        <div className="flex items-center gap-1.5 opacity-80 mt-1">
+                                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-blue-500/5 text-blue-500 border-blue-500/20 font-medium">
+                                                <User className="h-3 w-3 mr-1" />
+                                                {personName}
+                                            </Badge>
+                                        </div>
                                     )}
                                 </div>
                             </TableCell>
