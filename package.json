@@ -8,10 +8,10 @@
   "scripts": {
     "preinstall": "corepack enable && corepack prepare pnpm@latest --activate",
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "echo \"skipping prisma generate on install\""
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
