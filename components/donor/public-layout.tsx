@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Package, Menu } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function PublicLayout({
     children,
@@ -32,6 +33,7 @@ export default function PublicLayout({
                                     Admin Portal
                                 </Link>
                                 <div className="h-4 w-[1px] bg-border" />
+                                <ThemeToggle />
                                 <button className="rounded-full bg-foreground px-6 py-2.5 text-sm font-semibold text-background shadow-lg shadow-border hover:bg-foreground/90 transition-all hover:scale-[1.02]">
                                     How it works
                                 </button>

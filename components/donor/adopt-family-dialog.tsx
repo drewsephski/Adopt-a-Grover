@@ -181,8 +181,7 @@ export function AdoptFamilyDialog({ family, children }: AdoptFamilyDialogProps) 
                                     <div>
                                         <p className="text-sm font-bold text-foreground mb-0.5">Drop-off Location</p>
                                         <p className="text-sm text-muted-foreground leading-relaxed">
-                                            Fox River Grove Village Hall<br />
-                                            305 Illinois Route 22<br />
+                                            624 Ellington Court<br />
                                             Fox River Grove, IL 60021
                                         </p>
                                     </div>
@@ -194,7 +193,7 @@ export function AdoptFamilyDialog({ family, children }: AdoptFamilyDialogProps) 
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-foreground mb-0.5">Deadline</p>
-                                        <p className="text-sm text-muted-foreground">Please drop off all items by Monday, Dec 16th.</p>
+                                        <p className="text-sm text-muted-foreground">Please drop off all items by Monday, Dec 19th.</p>
                                     </div>
                                 </div>
                             </div>

@@ -17,6 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
     Loader2,
     Heart,
     Mail,
@@ -132,16 +139,21 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
                                 {available > 1 && (
                                     <div className="space-y-2">
                                         <Label htmlFor="quantity" className="text-sm font-bold text-slate-700 ml-1">Quantity</Label>
-                                        <select
-                                            id="quantity"
-                                            className="w-full h-12 rounded-xl bg-slate-50 border border-slate-100 px-4 focus:bg-white transition-all outline-none text-slate-900 font-medium"
-                                            value={formData.quantity}
-                                            onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
+                                        <Select
+                                            value={formData.quantity.toString()}
+                                            onValueChange={(value) => setFormData({ ...formData, quantity: parseInt(value) })}
                                         >
-                                            {Array.from({ length: available }).map((_, i) => (
-                                                <option key={i + 1} value={i + 1}>{i + 1}</option>
-                                            ))}
-                                        </select>
+                                            <SelectTrigger id="quantity" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white transition-all text-slate-900 font-medium">
+                                                <SelectValue placeholder="Select quantity" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({ length: available }).map((_, i) => (
+                                                    <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                                        {i + 1}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 )}
                             </div>
@@ -191,8 +203,7 @@ export function ClaimDialog({ gift, children }: ClaimDialogProps) {
                                     <div>
                                         <p className="text-sm font-bold text-slate-900 mb-0.5">Drop-off Location</p>
                                         <p className="text-sm text-slate-500 leading-relaxed">
-                                            Fox River Grove Village Hall<br />
-                                            305 Illinois Route 22<br />
+                                            624 Ellington Court<br />
                                             Fox River Grove, IL 60021
                                         </p>
                                     </div>

@@ -8,6 +8,7 @@ import {
     LayoutDashboard,
     Settings
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AdminLayout({
     children,
@@ -41,19 +42,23 @@ export default function AdminLayout({
                         </AdminNavLink>
                     </nav>
 
-                    <div className="border-t p-4">
-                        <div className="flex items-center justify-between rounded-lg bg-slate-50 p-2">
+                    <div className="border-t p-4 space-y-2">
+                        <div className="flex items-center justify-between rounded-lg bg-muted p-2">
                             <div className="flex items-center gap-2">
                                 <UserButton afterSignOutUrl="/" />
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-medium text-slate-900">Admin</span>
-                                    <span className="text-[10px] text-slate-500">Organizer</span>
+                                    <span className="text-xs font-medium text-foreground">Admin</span>
+                                    <span className="text-[10px] text-muted-foreground">Organizer</span>
                                 </div>
                             </div>
-                            <Link href="/admin/settings" className="text-slate-400 hover:text-slate-600">
-                                <Settings className="h-4 w-4" />
-                            </Link>
                         </div>
+                        <div className="flex items-center justify-between rounded-lg bg-muted p-2">
+                            <span className="text-xs font-medium text-muted-foreground">Theme</span>
+                            <ThemeToggle />
+                        </div>
+                        <Link href="/admin/settings" className="flex items-center justify-center rounded-lg bg-muted p-2 text-muted-foreground hover:text-foreground transition-colors">
+                            <Settings className="h-4 w-4" />
+                        </Link>
                     </div>
                 </div>
             </aside>
@@ -61,12 +66,15 @@ export default function AdminLayout({
             {/* Main Content */}
             <main className="flex-1 lg:pl-64">
                 {/* Header (Mobile) */}
-                <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-white px-4 lg:hidden">
+                <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 lg:hidden">
                     <Link href="/admin" className="flex items-center gap-2 font-semibold">
                         <Package className="h-5 w-5 text-indigo-600" />
                         <span>Adopt a Grover</span>
                     </Link>
-                    <UserButton afterSignOutUrl="/" />
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        <UserButton afterSignOutUrl="/" />
+                    </div>
                 </header>
 
                 <div className="p-4 md:p-8 lg:p-10">
