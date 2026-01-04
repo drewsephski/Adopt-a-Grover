@@ -20,7 +20,7 @@ import {
     Settings
 } from "lucide-react";
 import { updateCampaignStatus, deleteCampaign } from "@/lib/actions/campaign";
-import { CampaignStatus } from "@prisma/client";
+import type { CampaignStatus } from "@prisma/client";
 import type { CampaignWithFamilies } from "@/lib/types";
 import { toast } from "sonner";
 import {
