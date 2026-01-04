@@ -9,8 +9,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+    Claim,
+    FamilyWithGifts,
     getCampaignProgress,
-    getFamilyProgress
+    getFamilyProgress,
+    GiftWithClaims
 } from "@/lib/types";
 import {
     Gift,
@@ -20,7 +23,6 @@ import {
     TrendingUp,
     Calendar,
     PlusCircle,
-    CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -54,19 +56,19 @@ export default async function AdminDashboardPage() {
 
     // Get families that need attention (incomplete)
     const incompleteFamilies = activeCampaign.families
-        .map(f => ({ ...f, stats: getFamilyProgress(f) }))
-        .filter(f => f.stats.percentComplete < 100)
-        .sort((a, b) => a.stats.percentComplete - b.stats.percentComplete)
+        .map((f: FamilyWithGifts) => ({ ...f, stats: getFamilyProgress(f) }))
+        .filter((f: FamilyWithGifts & { stats: ReturnType<typeof getFamilyProgress> }) => f.stats.percentComplete < 100)
+        .sort((a: FamilyWithGifts & { stats: ReturnType<typeof getFamilyProgress> }, b: FamilyWithGifts & { stats: ReturnType<typeof getFamilyProgress> }) => a.stats.percentComplete - b.stats.percentComplete)
         .slice(0, 5);
 
     // Get recent claims across all gifts
     const recentClaims = activeCampaign.families
-        .flatMap(f => f.gifts.flatMap(g => g.claims.map(c => ({
+        .flatMap((f: FamilyWithGifts) => f.gifts.flatMap((g: GiftWithClaims) => g.claims.map((c: Claim) => ({
             ...c,
             giftName: g.name,
             familyAlias: f.alias
         }))))
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .sort((a: Claim & { giftName: string; familyAlias: string }, b: Claim & { giftName: string; familyAlias: string }) => b.createdAt.getTime() - a.createdAt.getTime())
         .slice(0, 5);
 
     return (
@@ -131,7 +133,7 @@ export default async function AdminDashboardPage() {
                             {incompleteFamilies.length === 0 ? (
                                 <p className="text-sm text-slate-500 italic text-center py-4">All families are fully claimed! 🎉</p>
                             ) : (
-                                incompleteFamilies.map((family) => (
+                                incompleteFamilies.map((family: FamilyWithGifts & { stats: ReturnType<typeof getFamilyProgress> }) => (
                                     <div key={family.id} className="flex items-center justify-between">
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium text-slate-900">{family.alias}</p>
@@ -176,7 +178,7 @@ export default async function AdminDashboardPage() {
                             {recentClaims.length === 0 ? (
                                 <p className="text-sm text-slate-500 italic text-center py-4">No claims yet.</p>
                             ) : (
-                                recentClaims.map((claim) => (
+                                recentClaims.map((claim: Claim & { giftName: string; familyAlias: string }) => (
                                     <div key={claim.id} className="flex items-start justify-between border-b border-slate-50 pb-4 last:border-0 last:pb-0">
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium text-slate-900">
