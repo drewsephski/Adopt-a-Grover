@@ -1,0 +1,84 @@
+// Adopt a Grover - Prisma Schema
+// Neon PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model Campaign {
+  id        String         @id @default(cuid())
+  name      String
+  status    CampaignStatus @default(DRAFT)
+  startsAt  DateTime?
+  endsAt    DateTime?
+
+  families  Family[]
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model Family {
+  id         String   @id @default(cuid())
+  alias      String
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  gifts      Gift[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([campaignId])
+}
+
+model Gift {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  productUrl  String?
+  quantity    Int
+
+  familyId    String
+  family      Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  claims      Claim[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([familyId])
+}
+
+model Claim {
+  id         String   @id @default(cuid())
+  giftId     String
+  gift       Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  donorName  String
+  donorEmail String
+  quantity   Int      @default(1)
+
+  createdAt  DateTime @default(now())
+
+  @@index([giftId])
+}

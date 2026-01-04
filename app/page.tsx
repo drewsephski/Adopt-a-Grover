@@ -1,65 +1,100 @@
-import Image from "next/image";
+import { getActiveCampaign } from "@/lib/actions/campaign";
+import PublicLayout from "@/components/donor/public-layout";
+import { FamilyGrid } from "@/components/donor/family-grid";
+import { HeroSection } from "@/components/donor/hero-section";
+import { Gift, Heart, Info } from "lucide-react";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+export default async function Page() {
+    const activeCampaign = await getActiveCampaign();
+
+    return (
+        <PublicLayout>
+            <div className="space-y-24 pb-32">
+                {/* Hero */}
+                <HeroSection campaignName={activeCampaign?.name} />
+
+                {/* Content */}
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    {!activeCampaign ? (
+                        <div className="flex flex-col items-center justify-center py-32 text-center bg-white rounded-3xl border border-slate-100 shadow-sm px-8">
+                            <div className="p-4 rounded-2xl bg-amber-50 mb-6">
+                                <Info className="h-10 w-10 text-amber-500" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">No active campaign yet</h2>
+                            <p className="text-slate-500 max-w-md">
+                                We&apos;re currently preparing for our next donation season. Please check back soon or follow our community updates.
+                            </p>
+                        </div>
+                    ) : activeCampaign.status === "CLOSED" ? (
+                        <div className="flex flex-col items-center justify-center py-32 text-center bg-white rounded-3xl border border-slate-100 shadow-sm px-8">
+                            <div className="p-4 rounded-2xl bg-indigo-50 mb-6">
+                                <CheckCircle className="h-10 w-10 text-indigo-500" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Donations are closed</h2>
+                            <p className="text-slate-500 max-w-md">
+                                The &quot;{activeCampaign.name}&quot; campaign has reached its conclusion. Thank you to everyone who participated!
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-16">
+                            {/* Guidance Row */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <InfoCard
+                                    icon={<Gift className="h-6 w-6 text-rose-500" />}
+                                    title="Choose a gift"
+                                    description="Browse families and select items they need for the holiday season."
+                                />
+                                <InfoCard
+                                    icon={<Heart className="h-6 w-6 text-emerald-500" />}
+                                    title="Claim it"
+                                    description="Provide your name and email. We&apos;ll send you the details for your donation."
+                                />
+                                <InfoCard
+                                    icon={<CheckCircle className="h-6 w-6 text-indigo-500" />}
+                                    title="Drop it off"
+                                    description="Deliver your items to our designated collection point in Fox River Grove."
+                                />
+                            </div>
+
+                            {/* Family Grid */}
+                            <div id="browse" className="scroll-mt-32 space-y-8">
+                                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                                    <div className="space-y-2">
+                                        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Browse Families</h2>
+                                        <p className="text-slate-500">Choose a family to support this season.</p>
+                                    </div>
+                                </div>
+
+                                <FamilyGrid campaign={activeCampaign} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </PublicLayout>
+    );
+}
+
+function InfoCard({
+    icon,
+    title,
+    description
+}: {
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+}) {
+    return (
+        <div className="p-8 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all hover:shadow-md hover:-translate-y-1">
+            <div className="mb-4 inline-block">{icon}</div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
+            <p className="text-slate-500 text-sm leading-relaxed">{description}</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    );
+}
+
+function CheckCircle({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>
+    );
 }
