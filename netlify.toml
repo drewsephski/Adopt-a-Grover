@@ -3,6 +3,6 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "20.9.0"
+  NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
   COREPACK_ENABLE = "1"
