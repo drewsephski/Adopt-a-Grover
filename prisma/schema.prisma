@@ -1,4 +1,4 @@
-// Adopt a Grover - Prisma Schema
+// Pitch In List - Prisma Schema
 // Neon PostgreSQL Database
 
 generator client {
@@ -20,21 +20,31 @@ enum CampaignStatus {
   ARCHIVED
 }
 
+enum OrganizationType {
+  SCHOOL
+  CHURCH
+  NONPROFIT
+  BUSINESS
+}
+
 // ============================================
 // MODELS
 // ============================================
 
 model Campaign {
-  id        String         @id @default(cuid())
-  name      String
-  status    CampaignStatus @default(DRAFT)
-  startsAt  DateTime?
-  endsAt    DateTime?
+  id               String           @id @default(cuid())
+  name             String
+  status           CampaignStatus    @default(DRAFT)
+  organizationType OrganizationType @default(NONPROFIT)
+  startsAt         DateTime?
+  endsAt           DateTime?
+  dropOffDeadline  DateTime?
+  dropOffAddress   String?
 
-  families  Family[]
+  families         Family[]
 
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Family {
@@ -55,7 +65,6 @@ model Family {
 model Person {
   id         String   @id @default(cuid())
   firstName  String
-  lastName   String
   role       String?  // e.g., "Boy", "Girl", "Mother", "Father"
   age        Int?     // Age in years
 
@@ -104,4 +113,22 @@ model Claim {
   createdAt  DateTime @default(now())
 
   @@index([giftId])
+}
+
+model Settings {
+  id                    String @id @default(cuid())
+  
+  // Essential Settings
+  emailNotifications    Boolean @default(true)
+  autoArchiveCampaigns  Boolean @default(true)
+  
+  // Database Management
+  automaticBackups      Boolean @default(true)
+  
+  // Security
+  twoFactorAuth         Boolean @default(false)
+  allowAdminRegistration Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getFamilyProgress, getAvailableQuantity, groupGiftsByPerson, getPersonProgress, isPersonFullyClaimed } from "@/lib/types";
+import { getFamilyProgress, getAvailableQuantity, groupGiftsByPerson, isPersonFullyClaimed } from "@/lib/types";
 import type { FamilyWithGifts, GiftWithClaims, PersonWithGifts } from "@/lib/types";
 import {
     ExternalLink,
@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { ClaimDialog } from "@/components/donor/claim-dialog";
 import { AdoptFamilyDialog } from "@/components/donor/adopt-family-dialog";
-import { AdoptPersonDialog } from "@/components/donor/adopt-person-dialog";
 
 export function FamilyCard({ family }: { family: FamilyWithGifts }) {
     const stats = getFamilyProgress(family);
@@ -51,7 +50,7 @@ export function FamilyCard({ family }: { family: FamilyWithGifts }) {
                                 className="rounded-lg h-8 px-4 text-xs font-bold text-primary hover:bg-primary/10 border-primary/20"
                             >
                                 <Heart className="h-3.5 w-3.5 mr-1.5" />
-                                Adopt Family
+                                Claim Family
                             </Button>
                         </AdoptFamilyDialog>
                     </div>
@@ -60,7 +59,7 @@ export function FamilyCard({ family }: { family: FamilyWithGifts }) {
             <CardContent className="p-0">
                 <div className="divide-y divide-border/50">
                     {persons.map((person: PersonWithGifts) => (
-                        <PersonSection key={person.fullName} familyId={family.id} person={person} />
+                        <PersonSection key={person.fullName} person={person} />
                     ))}
                 </div>
             </CardContent>
@@ -68,8 +67,7 @@ export function FamilyCard({ family }: { family: FamilyWithGifts }) {
     );
 }
 
-function PersonSection({ familyId, person }: { familyId: string; person: PersonWithGifts }) {
-    const stats = getPersonProgress(person);
+function PersonSection({ person }: { person: PersonWithGifts }) {
     const isComplete = isPersonFullyClaimed(person);
 
     // Format person display name with role and age
@@ -97,23 +95,12 @@ function PersonSection({ familyId, person }: { familyId: string; person: PersonW
                         )}
                     </div>
                 </div>
-                <AdoptPersonDialog familyId={familyId} person={person} disabled={isComplete}>
-                    {isComplete ? (
+                {isComplete ? (
                         <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
                             <CheckCircle2 className="h-4 w-4" />
                             Complete
                         </div>
-                    ) : (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-lg h-8 px-4 text-xs font-bold text-primary hover:bg-primary/10"
-                        >
-                            <Heart className="h-3.5 w-3.5 mr-1.5" />
-                            Claim
-                        </Button>
-                    )}
-                </AdoptPersonDialog>
+                    ) : null}
             </div>
             <div className="space-y-2.5 pl-5 border-l-2 border-muted">
                 {person.gifts.map((gift: GiftWithClaims) => (
@@ -156,7 +143,7 @@ function GiftRow({ gift }: { gift: GiftWithClaims }) {
                         {isClaimed ? (
                             <div className="flex items-center gap-1 text-xs font-medium text-primary">
                                 <CheckCircle2 className="h-3.5 w-3.5" />
-                                Donated
+                                Claimed
                             </div>
                         ) : (
                             <Button
@@ -164,7 +151,7 @@ function GiftRow({ gift }: { gift: GiftWithClaims }) {
                                 size="sm"
                                 className="rounded-lg h-7 px-3 text-xs font-bold text-primary hover:bg-primary/10"
                             >
-                                Donate
+                                Claim Item
                             </Button>
                         )}
                     </ClaimDialog>

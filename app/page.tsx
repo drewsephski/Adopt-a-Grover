@@ -2,6 +2,7 @@ import { getActiveCampaign } from "@/lib/actions/campaign";
 import PublicLayout from "@/components/donor/public-layout";
 import { FamilyGrid } from "@/components/donor/family-grid";
 import { HeroSection } from "@/components/donor/hero-section";
+import { BuyMeACoffee } from "@/components/buy-me-coffee";
 import { Gift, Heart, Info, CheckCircle } from "lucide-react";
 
 export default async function Page() {
@@ -30,7 +31,7 @@ export default async function Page() {
                             <div className="p-4 rounded-2xl bg-secondary mb-6">
                                 <CheckCircle className="h-10 w-10 text-secondary-foreground" />
                             </div>
-                            <h2 className="text-2xl font-bold text-card-foreground mb-2">Donations are closed</h2>
+                            <h2 className="text-2xl font-bold text-card-foreground mb-2">Claims are closed</h2>
                             <p className="text-muted-foreground max-w-md">
                                 The &quot;{activeCampaign.name}&quot; campaign has reached its conclusion. Thank you to everyone who participated!
                             </p>
@@ -45,18 +46,18 @@ export default async function Page() {
                                 <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
                                     <InfoCard
                                         icon={<Gift className="h-6 w-6 text-primary" />}
-                                        title="Choose a gift"
-                                        description="Browse families and select items they need for the holiday season."
+                                        title="Real-time Availability"
+                                        description="See exactly what&apos;s needed right now. No more claiming gifts that someone else already took - unlike SignUp Genius."
                                     />
                                     <InfoCard
                                         icon={<Heart className="h-6 w-6 text-primary" />}
-                                        title="Claim it"
-                                        description="Provide your name and email. We&apos;ll send you the details for your donation."
+                                        title="Instant Confirmation"
+                                        description="Get immediate email confirmation with drop-off details. No guessing if your claim went through."
                                     />
                                     <InfoCard
                                         icon={<CheckCircle className="h-6 w-6 text-primary" />}
-                                        title="Drop it off"
-                                        description="Deliver your items to our designated collection point in Fox River Grove."
+                                        title="Family Privacy Protected"
+                                        description="Families remain completely anonymous. Only admins see personal information, keeping everyone safe."
                                     />
                                 </div>
                             </div>
@@ -74,6 +75,11 @@ export default async function Page() {
                             </div>
                         </div>
                     )}
+                </div>
+
+                {/* Buy Me a Coffee */}
+                <div className="mx-auto max-w-md px-4 sm:px-6 lg:px-8">
+                    <BuyMeACoffee />
                 </div>
             </div>
         </PublicLayout>

@@ -1,6 +1,7 @@
 import { getActiveCampaign } from "@/lib/actions/campaign";
 import { getClaimsByCampaign } from "@/lib/actions/claim";
 import { ClaimList } from "@/components/admin/claim-list";
+import { AdminBreadcrumbs } from "@/components/admin/admin-breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Heart } from "lucide-react";
 
@@ -19,6 +20,7 @@ export default async function AdminClaimsPage() {
 
     return (
         <div className="space-y-8">
+            <AdminBreadcrumbs />
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground tracking-tight uppercase">Donations &amp; Claims</h1>
@@ -32,9 +34,7 @@ export default async function AdminClaimsPage() {
                 </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-                <ClaimList claims={claims} />
-            </div>
+            <ClaimList claims={claims} />
         </div>
     );
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Settings2, ArrowLeft } from "lucide-react";
 import { CampaignSettingsForm } from "./settings-form";
+import { AdminBreadcrumbs } from "@/components/admin/admin-breadcrumbs";
 
 export default async function CampaignSettingsPage({
     params,
@@ -18,14 +19,7 @@ export default async function CampaignSettingsPage({
 
     return (
         <div className="space-y-8">
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Link href="/admin/campaigns" className="hover:text-primary transition-colors">Campaigns</Link>
-                <span className="text-muted-foreground/30">/</span>
-                <Link href={`/admin/campaigns/${campaign.id}`} className="hover:text-primary transition-colors">{campaign.name}</Link>
-                <span className="text-muted-foreground/30">/</span>
-                <span className="text-foreground font-medium">Settings</span>
-            </div>
+            <AdminBreadcrumbs />
 
             {/* Header */}
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between border-b border-border pb-8">

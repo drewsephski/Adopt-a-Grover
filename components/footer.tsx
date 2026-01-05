@@ -10,7 +10,7 @@ export function Footer() {
                         <div className="flex items-center gap-2">
                             <Package className="h-6 w-6 text-primary" />
                             <span className="text-xl font-bold tracking-tight text-foreground">
-                                Adopt a Grover
+                                Pitch In List
                             </span>
                         </div>
                         <p className="text-muted-foreground max-w-md leading-relaxed">
@@ -47,7 +47,7 @@ export function Footer() {
                 </div>
                 <div className="border-t border-border pt-8 text-center">
                     <p className="text-xs text-muted-foreground">
-                        © {new Date().getFullYear()} Adopt a Grover. All rights reserved.
+                        © {new Date().getFullYear()} Pitch In List. All rights reserved.
                     </p>
                 </div>
             </div>

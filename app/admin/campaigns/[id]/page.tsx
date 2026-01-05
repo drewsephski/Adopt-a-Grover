@@ -16,6 +16,7 @@ import { FamilyList } from "@/components/admin/family-list";
 import { CreateFamilyDialog } from "@/components/admin/create-family-dialog";
 import { ImportCSVDialog } from "@/components/admin/import-csv-dialog";
 import { ExportButton } from "@/components/admin/export-button";
+import { AdminBreadcrumbs } from "@/components/admin/admin-breadcrumbs";
 import { FileUp } from "lucide-react";
 
 export default async function CampaignDetailPage({
@@ -34,12 +35,7 @@ export default async function CampaignDetailPage({
 
     return (
         <div className="space-y-8">
-            {/* Breadcrumbs & Navigation */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Link href="/admin/campaigns" className="hover:text-primary transition-colors">Campaigns</Link>
-                <span className="text-muted-foreground/30">/</span>
-                <span className="text-foreground font-medium">{campaign.name}</span>
-            </div>
+            <AdminBreadcrumbs />
 
             {/* Header */}
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between border-b border-border pb-8">
@@ -88,18 +84,7 @@ export default async function CampaignDetailPage({
                     icon={<Heart className="h-4 w-4" />}
                     label="View All Claims"
                 />
-                <ExportButton
-                    campaignId={campaign.id}
-                    campaignName={campaign.name}
-                    type="claims"
-                    label="Export Claims"
-                />
-                <ExportButton
-                    campaignId={campaign.id}
-                    campaignName={campaign.name}
-                    type="inventory"
-                    label="Export Inventory"
-                />
+
                 <ImportCSVDialog campaignId={campaign.id}>
                     <Button variant="outline" className="h-12 justify-start gap-2 rounded-xl bg-card border-border hover:bg-primary/5 hover:text-primary transition-all">
                         <FileUp className="h-4 w-4" />
@@ -113,7 +98,20 @@ export default async function CampaignDetailPage({
                     </Link>
                 </Button>
             </div>
-
+            <div className="flex gap-4 justify-center">
+                <ExportButton
+                    campaignId={campaign.id}
+                    campaignName={campaign.name}
+                    type="claims"
+                    label="Export Claims"
+                />
+                <ExportButton
+                    campaignId={campaign.id}
+                    campaignName={campaign.name}
+                    type="inventory"
+                    label="Export Inventory"
+                />
+            </div>
             {/* Campaign Summary Stats */}
             <div className="grid gap-6 md:grid-cols-3">
                 <SummaryCard

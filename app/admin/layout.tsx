@@ -1,16 +1,5 @@
-import { UserButton } from "@clerk/nextjs";
-import Link from "next/link";
-import {
-    Package,
-    Users,
-    ClipboardList,
-    LayoutDashboard,
-    Settings,
-    Heart,
-    Box,
-    History
-} from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { AdminSidebar } from "@/components/admin/admin-navigation";
+import { AdminNavbar } from "@/components/admin/admin-navbar";
 
 export default function AdminLayout({
     children,
@@ -18,93 +7,24 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="flex min-h-screen bg-sidebar">
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 hidden h-full w-64 border-r border-sidebar-border bg-sidebar lg:block">
-                <div className="flex h-full flex-col">
-                    <div className="flex h-14 items-center border-b px-6">
-                        <Link href="/admin" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
-                            <Package className="h-5 w-5 text-sidebar-primary" />
-                            <span>Adopt a Grover</span>
-                        </Link>
-                    </div>
-
-                    <nav className="flex-1 space-y-1 p-4">
-                        <AdminNavLink href="/admin" icon={<LayoutDashboard className="h-4 w-4" />}>
-                            Dashboard
-                        </AdminNavLink>
-                        <AdminNavLink href="/admin/campaigns" icon={<ClipboardList className="h-4 w-4" />}>
-                            Campaigns
-                        </AdminNavLink>
-                        <AdminNavLink href="/admin/families" icon={<Users className="h-4 w-4" />}>
-                            Families
-                        </AdminNavLink>
-                        <AdminNavLink href="/admin/gifts" icon={<Box className="h-4 w-4" />}>
-                            Gifts
-                        </AdminNavLink>
-                        <AdminNavLink href="/admin/claims" icon={<Heart className="h-4 w-4" />}>
-                            Claims
-                        </AdminNavLink>
-                        <AdminNavLink href="/admin/past-events" icon={<History className="h-4 w-4" />}>
-                            Past Events
-                        </AdminNavLink>
-                    </nav>
-
-                    <div className="border-t p-4 space-y-2">
-                        <div className="flex items-center justify-between rounded-lg bg-muted p-2">
-                            <div className="flex items-center gap-2">
-                                <UserButton afterSignOutUrl="/" />
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-medium text-foreground">Admin</span>
-                                    <span className="text-[10px] text-muted-foreground">Organizer</span>
-                                </div>
-                            </div>
-                        </div>
-                        <Link href="/admin/settings" className="flex items-center justify-center rounded-lg bg-muted p-2 text-muted-foreground hover:text-foreground transition-colors">
-                            <Settings className="h-4 w-4" />
-                        </Link>
-                    </div>
-                </div>
-            </aside>
+        <div className="flex min-h-screen bg-sidebar overflow-hidden">
+            {/* Desktop Sidebar */}
+            <AdminSidebar />
 
             {/* Main Content */}
-            <main className="flex-1 lg:pl-64">
-                {/* Header (Mobile) */}
-                <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 lg:hidden">
-                    <Link href="/admin" className="flex items-center gap-2 font-semibold">
-                        <Package className="h-5 w-5 text-sidebar-primary" />
-                        <span>Adopt a Grover</span>
-                    </Link>
-                    <div className="flex items-center gap-2">
-                        <ThemeToggle />
-                        <UserButton afterSignOutUrl="/" />
-                    </div>
-                </header>
+            <main className="flex-1 min-w-0">
+                {/* Mobile Navbar */}
+                <div className="lg:hidden">
+                    <AdminNavbar />
+                </div>
 
-                <div className="p-4 md:p-8 lg:p-10">
-                    {children}
+                {/* Page Content */}
+                <div className="h-[calc(100vh-4rem)] lg:h-screen overflow-auto">
+                    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+                        {children}
+                    </div>
                 </div>
             </main>
         </div>
-    );
-}
-
-function AdminNavLink({
-    href,
-    children,
-    icon
-}: {
-    href: string;
-    children: React.ReactNode;
-    icon: React.ReactNode;
-}) {
-    return (
-        <Link
-            href={href}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        >
-            {icon}
-            {children}
-        </Link>
     );
 }

@@ -14,12 +14,12 @@ export enum CampaignStatus {
 
 export type GiftWithClaims = Gift & {
     claims: Claim[];
-    person?: Person;
+    person?: Person | null;
 };
 
 export type FamilyWithGifts = Family & {
     gifts: GiftWithClaims[];
-    persons?: PersonWithGifts[];
+    persons?: Person[] | null;
 };
 
 export type CampaignWithFamilies = Campaign & {
@@ -42,10 +42,7 @@ export type GiftWithFamily = Gift & {
     family: Family & {
         campaign: Campaign;
     };
-    person?: Person & {
-        firstName: string;
-        lastName: string;
-    };
+    person?: Person | null;
     claims: Claim[];
 };
 
@@ -168,9 +165,10 @@ export function groupGiftsByPerson(family: FamilyWithGifts | FamilyWithPersons):
     // Check if family has persons (new schema)
     if ('persons' in family && family.persons && family.persons.length > 0) {
         // Add fullName to each person
-        return family.persons.map((person: PersonWithGifts) => ({
+        return family.persons.map((person: Person) => ({
             ...person,
-            fullName: `${person.firstName} ${person.lastName}`.trim()
+            fullName: person.firstName,
+            gifts: [] // Initialize empty gifts array for compatibility
         }));
     }
 
@@ -180,7 +178,7 @@ export function groupGiftsByPerson(family: FamilyWithGifts | FamilyWithPersons):
     for (const gift of family.gifts) {
         // Try to get person from gift relation
         if (gift.person) {
-            const fullName = `${gift.person.firstName} ${gift.person.lastName}`.trim();
+            const fullName = gift.person.firstName;
 
             if (!personMap.has(fullName)) {
                 personMap.set(fullName, {
@@ -199,7 +197,6 @@ export function groupGiftsByPerson(family: FamilyWithGifts | FamilyWithPersons):
                 personMap.set(fullName, {
                     id: "temp-unassigned",
                     firstName: "",
-                    lastName: "",
                     familyId: family.id,
                     gifts: [],
                     fullName,
@@ -220,7 +217,7 @@ export function groupGiftsByPerson(family: FamilyWithGifts | FamilyWithPersons):
 /**
  * Calculate person progress
  */
-export function getPersonProgress(person: PersonWithGifts | { firstName: string; lastName: string; gifts: GiftWithClaims[] }): {
+export function getPersonProgress(person: PersonWithGifts | { firstName: string; gifts: GiftWithClaims[] }): {
     totalGifts: number;
     claimedGifts: number;
     totalQuantity: number;
@@ -257,6 +254,6 @@ export function getPersonProgress(person: PersonWithGifts | { firstName: string;
 /**
  * Check if a person is fully claimed
  */
-export function isPersonFullyClaimed(person: PersonWithGifts | { firstName: string; lastName: string; gifts: GiftWithClaims[] }): boolean {
+export function isPersonFullyClaimed(person: PersonWithGifts | { firstName: string; gifts: GiftWithClaims[] }): boolean {
     return person.gifts.every((gift: GiftWithClaims) => getAvailableQuantity(gift) === 0);
 }

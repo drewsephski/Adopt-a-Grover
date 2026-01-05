@@ -10,8 +10,6 @@ export interface ImportFamily {
         quantity: number;
         description?: string;
         productUrl?: string;
-        firstName?: string;
-        lastName?: string;
     }[];
 }
 
@@ -48,8 +46,6 @@ export async function importFromCSV(campaignId: string, data: ImportFamily[]) {
                             quantity: g.quantity,
                             description: g.description || null,
                             productUrl: g.productUrl || null,
-                            firstName: g.firstName || null,
-                            lastName: g.lastName || null,
                         })),
                     });
                     giftsCreated += item.gifts.length;

@@ -1,10 +1,10 @@
 import { getFamilyById } from "@/lib/actions/family";
 import { ManagePersonsDialog } from "@/components/admin/manage-persons-dialog";
 import { PersonGiftsSection } from "@/components/admin/person-gifts-section";
+import { AdminBreadcrumbs } from "@/components/admin/admin-breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    PlusCircle,
     CheckCircle2,
     Package,
     ArrowLeft,
@@ -15,7 +15,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFamilyProgress } from "@/lib/types";
 import { CreateGiftDialog } from "@/components/admin/create-gift-dialog";
-import type { PersonWithGifts, GiftWithClaims } from "@/lib/types";
+import type { PersonWithGifts } from "@/lib/types";
 
 export default async function FamilyDetailPage({
     params,
@@ -35,19 +35,12 @@ export default async function FamilyDetailPage({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const personsWithFullName = family.persons.map((p: any) => ({
         ...p,
-        fullName: `${p.firstName} ${p.lastName}`
+        fullName: p.firstName
     })) as PersonWithGifts[];
 
     return (
         <div className="space-y-8">
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Link href="/admin/campaigns" className="hover:text-primary transition-colors">Campaigns</Link>
-                <span className="text-muted-foreground/30">/</span>
-                <Link href={`/admin/campaigns/${family.campaignId}`} className="hover:text-primary transition-colors">{family.campaign.name}</Link>
-                <span className="text-muted-foreground/30">/</span>
-                <span className="text-foreground font-medium">{family.alias}</span>
-            </div>
+            <AdminBreadcrumbs />
 
             {/* Header */}
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between border-b border-border pb-8">

@@ -16,6 +16,7 @@ import { Loader2, FileUp, Info, AlertCircle, CheckCircle2 } from "lucide-react";
 import Papa from "papaparse";
 import { importFromCSV, type ImportFamily } from "@/lib/actions/import";
 import type { ImportResult } from "@/lib/actions/import";
+import { ColumnMapping } from "@/components/admin/column-mapping";
 
 interface ImportCSVDialogProps {
     campaignId: string;
@@ -27,6 +28,10 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
     const [isLoading, setIsLoading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<{ families: number; gifts: number } | null>(null);
+    const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+    const [csvData, setCsvData] = useState<Record<string, string>[]>([]);
+    const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+    const [showMapping, setShowMapping] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -41,11 +46,12 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
         }
     }
 
-    function processCSVData(data: Record<string, string>[]) {
+    function processCSVData(data: Record<string, string>[], mapping: Record<string, string>) {
         const familiesMap = new Map<string, ImportFamily>();
 
         data.forEach((row) => {
-            const familyAlias = row.Family || row.family_alias || row.family || row.alias;
+            // Use the mapping to get the correct values
+            const familyAlias = row[mapping.family] || row[mapping.family_alias] || row[mapping.family_name];
             if (!familyAlias || !familyAlias.trim()) return;
 
             const trimmedAlias = familyAlias.trim();
@@ -56,34 +62,19 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                 });
             }
 
-            // Priority 1: Direct Gift mapping
-            let giftName = row["Gift Item"] || row.gift_name || row.gift || row.item;
-            let description = row.Description || row.description || row.desc;
-            let quantityAttr = row["Quantity Required"] || row.quantity || row.qty || row["Quantity"];
-            const firstName = row.firstName || row.first_name;
-            const lastName = row.lastName || row.last_name;
+            // Get mapped values
+            // const firstName = row[mapping.firstName] || row[mapping.firstname] || row[mapping.first_name]; // Currently unused but kept for reference
+            const roleAge = row[mapping.roleAge] || row[mapping.role] || row[mapping.age];
+            const sizes = row[mapping.sizes] || row[mapping.size];
+            const wishlist = row[mapping.wishlist] || row[mapping.items] || row[mapping.gifts];
+            const giftName = row[mapping.giftName] || row[mapping.gift] || row[mapping.item];
+            const quantity = row[mapping.quantity] || row[mapping.qty] || row[mapping.amount];
+            const description = row[mapping.description] || row[mapping.desc] || row[mapping.details];
+            const productUrl = row[mapping.productUrl] || row[mapping.url] || row[mapping.link];
 
-            // Priority 2: Archive format mapping (Member, Donor, Gift Description)
-            if (!giftName && row.Member) {
-                giftName = row.Member;
-                const donor = row.Donor || row.donor;
-                const giftDesc = row["Gift Description"] || row.gift_description;
-                if (donor && giftDesc) description = `[Prev Donor: ${donor}] ${giftDesc}`;
-                else if (giftDesc) description = giftDesc;
-                else if (donor) description = `[Prev Donor: ${donor}]`;
-                if (quantityAttr === undefined) quantityAttr = "1";
-            }
-
-            // Priority 3: Adopt format mapping (Wishlist / Items, Role / Age, etc.)
-            const wishlist = row["Wishlist / Items"] || row.wishlist || row.items;
-            const roleAge = row["Role / Age"] || row.role || row.age;
-            const sizes = row.Sizes || row.sizes;
-            const adoptFirstName = row["First name"] || row.firstName;
-            const adoptLastName = row["Last name"] || row.lastName;
-
-            if (!giftName && wishlist) {
-                // Split wishlist by comma or semicolon
-                const items = wishlist.split(/[;,]/).filter(it => it.trim());
+            // Handle wishlist format (splits into multiple gifts)
+            if (wishlist && wishlist.trim()) {
+                const items = wishlist.split(/[,;]/).filter(it => it.trim());
                 items.forEach(item => {
                     let giftDesc = roleAge ? `For: ${roleAge}` : "";
                     if (sizes) giftDesc += giftDesc ? ` (${sizes})` : `Size: ${sizes}`;
@@ -92,25 +83,21 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                         name: item.trim(),
                         quantity: 1,
                         description: giftDesc.trim(),
-                        firstName: adoptFirstName?.trim(),
-                        lastName: adoptLastName?.trim(),
                     });
                 });
                 return; // Wishlist handled
             }
 
-            const quantityVal = parseInt(String(quantityAttr || "1").replace(/[^0-9]/g, ""));
-            const quantity = isNaN(quantityVal) ? 1 : quantityVal;
-            const productUrl = row["Product URL"] || row.product_url || row.url || row.link;
-
+            // Handle individual gift
             if (giftName && giftName.trim()) {
+                const quantityVal = parseInt(String(quantity || "1").replace(/[^0-9]/g, ""));
+                const finalQuantity = isNaN(quantityVal) ? 1 : quantityVal;
+
                 familiesMap.get(trimmedAlias)!.gifts.push({
                     name: giftName.trim(),
-                    quantity,
+                    quantity: finalQuantity,
                     description: description?.trim(),
                     productUrl: productUrl?.trim(),
-                    firstName: firstName?.trim(),
-                    lastName: lastName?.trim(),
                 });
             }
         });
@@ -124,7 +111,14 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
             skipEmptyLines: true,
             complete: (results) => {
                 const data = results.data as Record<string, string>[];
-                const familiesArray = processCSVData(data);
+                const headers = results.meta.fields || [];
+                
+                setCsvHeaders(headers);
+                setCsvData(data);
+                setShowMapping(true);
+                
+                // Auto-detect mapping and preview
+                const familiesArray = processCSVData(data, columnMapping);
                 const totalGifts = familiesArray.reduce((acc, f) => acc + f.gifts.length, 0);
                 setPreview({ families: familiesArray.length, gifts: totalGifts });
             },
@@ -132,6 +126,17 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                 toast.error("Failed to parse CSV: " + error.message);
             }
         });
+    }
+
+    function handleMappingChange(mapping: Record<string, string>) {
+        setColumnMapping(mapping);
+        
+        // Update preview with new mapping
+        if (csvData.length > 0) {
+            const familiesArray = processCSVData(csvData, mapping);
+            const totalGifts = familiesArray.reduce((acc, f) => acc + f.gifts.length, 0);
+            setPreview({ families: familiesArray.length, gifts: totalGifts });
+        }
     }
 
     async function handleImport() {
@@ -143,15 +148,14 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
             skipEmptyLines: true,
             complete: async (results) => {
                 const data = results.data as Record<string, string>[];
-                const familiesArray = processCSVData(data);
+                const familiesArray = processCSVData(data, columnMapping);
 
                 try {
                     const result = await importFromCSV(campaignId, familiesArray);
                     if ((result as ImportResult).success) {
                         toast.success(`Imported ${(result as ImportResult).familiesCreated} families and ${(result as ImportResult).giftsCreated} gifts`);
                         setOpen(false);
-                        setFile(null);
-                        setPreview(null);
+                        resetState();
                     } else {
                         toast.error("Import failed: " + (result as ImportResult).error);
                     }
@@ -165,17 +169,27 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
         });
     }
 
+    function resetState() {
+        setFile(null);
+        setPreview(null);
+        setCsvHeaders([]);
+        setCsvData([]);
+        setColumnMapping({});
+        setShowMapping(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+
     function downloadTemplate(type: "inventory" | "archive" | "adopt") {
         let headers: string[];
         let rows: string[][];
         let filename: string;
 
         if (type === "adopt") {
-            headers = ["First name", "Last name", "Family", "Role / Age", "Sizes", "Wishlist / Items"];
+            headers = ["First name", "Family", "Role / Age", "Sizes", "Wishlist / Items"];
             rows = [
-                ["Cesar", "Aguira", "A", "Dad", "Shirt L; Jeans 34x32; Shoes 11", "Socks, PJs, Hoodie, Dress Shirt, Sweat pants, Tee shirt"],
-                ["Maria", "Rodriguiz", "A", "Mom", "Shirt XL; Shoes 8", "Socks, PJs, Hoodie, Sweat pants, Tee shirt, Dress Shirt, Leggings"],
-                ["Vitalii", "Dychko", "B", "Boy 13", "Men’s M; Winter Boots 10", "Socks, PJs, Tee Shirts, Hoodie, Sweat pants, Hat, Mittens, Winter Boots; Art supplies (pencils, drawing pads); LEGO sets (cars, plane)"]
+                ["Cesar", "A", "Dad", "Shirt L; Jeans 34x32; Shoes 11", "Socks, PJs, Hoodie, Dress Shirt, Sweat pants, Tee shirt"],
+                ["Maria", "A", "Mom", "Shirt XL; Shoes 8", "Socks, PJs, Hoodie, Sweat pants, Tee shirt, Dress Shirt, Leggings"],
+                ["Vitalii", "B", "Boy 13", "Men's M; Winter Boots 10", "Socks, PJs, Tee Shirts, Hoodie, Sweat pants, Hat, Mittens, Winter Boots; Art supplies (pencils, drawing pads); LEGO sets (cars, plane)"]
             ];
             filename = "campaign_adopt_template.csv";
         } else if (type === "inventory") {
@@ -217,7 +231,7 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <FileUp className="h-5 w-5 text-primary" />
@@ -230,7 +244,7 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
 
                 <div className="grid gap-6 py-4">
                     <div
-                        className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 transition-colors cursor-pointer ${file ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50'}`}
+                        className={`border-2 border-dashed rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 transition-colors cursor-pointer ${file ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50'}`}
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <input
@@ -247,11 +261,9 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                                     <p className="font-medium text-foreground">{file.name}</p>
                                     <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={(e) => {
+                                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={(e) => {
                                     e.stopPropagation();
-                                    setFile(null);
-                                    setPreview(null);
-                                    if (fileInputRef.current) fileInputRef.current.value = "";
+                                    resetState();
                                 }}>
                                     Remove file
                                 </Button>
@@ -273,7 +285,7 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                                 <Info className="h-4 w-4 text-blue-500" />
                                 Import Summary
                             </h4>
-                            <div className="grid grid-cols-2 gap-4 text-sm mt-1">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm mt-1">
                                 <div className="flex flex-col">
                                     <span className="text-muted-foreground">Families to create</span>
                                     <span className="font-bold">{preview.families}</span>
@@ -287,73 +299,91 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                     )}
 
                     <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            <AlertCircle className="h-3 w-3" />
-                            CSV Column Mapping
-                        </div>
-                        <div className="bg-muted p-3 rounded-lg text-[10px] font-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1">
-                            <div className="font-bold text-primary/70 col-span-2 mb-1 border-b border-primary/10 pb-1">ADOPT FORMAT (PRIVATE NAMES)</div>
-                            <div>First name / Last name</div>
-                            <div>Family (required)</div>
-                            <div>Role / Age</div>
-                            <div>Wishlist / Items (splits into gifts)</div>
-                            <div className="col-span-2 mb-2">Sizes (added to description)</div>
-
-                            <div className="font-bold text-primary/70 col-span-2 mb-1 border-b border-primary/10 pb-1 opacity-60">INVENTORY FORMAT</div>
-                            <div>Family (required)</div>
-                            <div>Gift Item</div>
-                            <div>Quantity Required</div>
-                            <div>Description</div>
-                            <div className="col-span-2 mb-2">Product URL (optional)</div>
-
-                            <div className="font-bold text-primary/70 col-span-2 mb-1 border-b border-primary/10 pb-1 opacity-60">ARCHIVE FORMAT</div>
-                            <div>Family (required)</div>
-                            <div>Member (gift name)</div>
-                            <div>Gift Description</div>
-                            <div className="col-span-2">Donor (optional)</div>
-                        </div>
-                        <div className="flex flex-wrap gap-x-3 gap-y-2 mt-1">
-                            <button
+                        {showMapping && csvHeaders.length > 0 && (
+                            <>
+                                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                    <Info className="h-3 w-3" />
+                                    Step 2: Map Your Columns
+                                </div>
+                                <ColumnMapping
+                                    csvHeaders={csvHeaders}
+                                    onMappingChange={handleMappingChange}
+                                    detectedMapping={columnMapping}
+                                />
+                            </>
+                        )}
+                        
+                        {!showMapping && (
+                            <>
+                                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                    <AlertCircle className="h-3 w-3" />
+                                    CSV Templates
+                                </div>
+                                <div className="bg-muted p-3 rounded-lg text-[11px] sm:text-xs text-muted-foreground">
+                                    <div className="space-y-2">
+                                        <div>
+                                            <span className="font-semibold">Adopt Format:</span> First name, Family, Role / Age, Sizes, Wishlist / Items
+                                        </div>
+                                        <div>
+                                            <span className="font-semibold">Inventory Format:</span> Family, Gift Item, Description, Quantity Required, Product URL
+                                        </div>
+                                        <div>
+                                            <span className="font-semibold">Archive Format:</span> Family, Member, Donor, Gift Description
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                        
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-1">
+                            <Button
                                 type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={() => downloadTemplate("adopt")}
-                                className="text-[11px] text-primary hover:underline font-medium flex items-center gap-1"
+                                className="h-11 text-xs"
                             >
-                                <Info className="h-3 w-3" />
+                                <Info className="h-4 w-4 mr-1" />
                                 Adopt Template
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={() => downloadTemplate("inventory")}
-                                className="text-[11px] text-primary hover:underline font-medium flex items-center gap-1"
+                                className="h-11 text-xs"
                             >
-                                <Info className="h-3 w-3" />
+                                <Info className="h-4 w-4 mr-1" />
                                 Inventory Template
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={() => downloadTemplate("archive")}
-                                className="text-[11px] text-primary hover:underline font-medium flex items-center gap-1"
+                                className="h-11 text-xs"
                             >
-                                <Info className="h-3 w-3" />
+                                <Info className="h-4 w-4 mr-1" />
                                 Archive Template
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
 
-                <DialogFooter>
+                <DialogFooter className="gap-2 sm:gap-4">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => setOpen(false)}
                         disabled={isLoading}
+                        className="w-full sm:w-auto h-11"
                     >
                         Cancel
                     </Button>
                     <Button
                         onClick={handleImport}
-                        disabled={isLoading || !file}
-                        className="bg-primary hover:bg-primary/90"
+                        disabled={isLoading || !file || !showMapping}
+                        className="w-full sm:w-auto h-11 bg-primary hover:bg-primary/90"
                     >
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Import Data

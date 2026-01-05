@@ -20,7 +20,7 @@ export function Navbar() {
                                 <Package className="h-6 w-6 text-primary" />
                             </div>
                             <span className="text-xl font-bold tracking-tight text-foreground">
-                                Adopt a <span className="text-primary">Grover</span>
+                                Pitch In <span className="text-primary">List</span>
                             </span>
                         </Link>
                     </div>

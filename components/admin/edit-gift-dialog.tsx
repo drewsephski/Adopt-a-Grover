@@ -28,14 +28,14 @@ interface EditGiftDialogProps {
 
 export function EditGiftDialog({ gift, open, onOpenChange }: EditGiftDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [persons, setPersons] = useState<Array<{ id: string; firstName: string; lastName: string }>>([]);
+    const [persons, setPersons] = useState<Array<{ id: string; firstName: string }>>([]);
 
     const [formData, setFormData] = useState({
         name: gift.name,
         quantity: gift.quantity,
         description: gift.description || "",
         productUrl: gift.productUrl || "",
-        personId: gift.personId || ""
+        personId: gift.personId || "unassigned"
     });
 
     // Load persons when dialog opens
@@ -65,7 +65,7 @@ export function EditGiftDialog({ gift, open, onOpenChange }: EditGiftDialogProps
                 quantity: formData.quantity,
                 description: formData.description || null,
                 productUrl: formData.productUrl || null,
-                personId: formData.personId || null
+                personId: formData.personId === "unassigned" ? null : formData.personId
             });
             toast.success("Gift updated successfully");
             onOpenChange(false);
@@ -79,7 +79,7 @@ export function EditGiftDialog({ gift, open, onOpenChange }: EditGiftDialogProps
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[425px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>Edit Gift Details</DialogTitle>
@@ -87,84 +87,85 @@ export function EditGiftDialog({ gift, open, onOpenChange }: EditGiftDialogProps
                             Update the details for &quot;{gift.name}&quot;.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-5 py-6">
+                    <div className="grid gap-1.5 py-2">
                         {persons.length > 0 && (
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="edit-personId" className="text-right">Person</Label>
+                            <div className="grid gap-0.5">
+                                <Label htmlFor="edit-personId" className="text-[10px]">Person</Label>
                                 <Select
                                     value={formData.personId}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, personId: value }))}
                                 >
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Select a person (optional)" />
+                                    <SelectTrigger className="h-9 text-xs">
+                                        <SelectValue placeholder="Select (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">Unassigned</SelectItem>
+                                        <SelectItem value="unassigned">Unassigned</SelectItem>
                                         {persons.map((person) => (
                                             <SelectItem key={person.id} value={person.id}>
-                                                {person.firstName} {person.lastName}
+                                                {person.firstName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                         )}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-name" className="text-right">Name</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-name">Name</Label>
                             <Input
                                 id="edit-name"
-                                className="col-span-3 text-foreground"
+                                className="text-foreground h-11"
                                 placeholder="e.g. LEGO Star Wars Set"
                                 value={formData.name}
                                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                                 required
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-quantity" className="text-right">Quantity</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-quantity">Quantity</Label>
                             <Input
                                 id="edit-quantity"
                                 type="number"
                                 min="1"
-                                className="col-span-3 text-foreground"
+                                className="text-foreground h-11"
                                 value={formData.quantity}
                                 onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
                                 required
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-start gap-4">
-                            <Label htmlFor="edit-description" className="text-right pt-2">Description</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-description">Description</Label>
                             <Textarea
                                 id="edit-description"
-                                className="col-span-3 text-foreground"
+                                className="text-foreground min-h-[50px] px-3 py-2 text-xs"
                                 placeholder="Size, color, or specific details for the donor..."
                                 value={formData.description}
                                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                             />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-productUrl" className="text-right">Link (opt)</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-productUrl">Link (opt)</Label>
                             <Input
                                 id="edit-productUrl"
-                                className="col-span-3 text-foreground"
+                                className="text-foreground h-11"
                                 placeholder="Amazon, Target, Walmart link..."
                                 value={formData.productUrl}
                                 onChange={(e) => setFormData(prev => ({ ...prev, productUrl: e.target.value }))}
                             />
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 pt-2">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             onClick={() => onOpenChange(false)}
                             disabled={isLoading}
+                            className="w-full sm:w-auto h-9 text-xs"
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoading || !formData.name.trim()}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Changes
+                        <Button type="submit" disabled={isLoading || !formData.name.trim()} className="w-full sm:w-auto h-9 text-xs">
+                            {isLoading && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
+                            Save
                         </Button>
                     </DialogFooter>
                 </form>

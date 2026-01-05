@@ -35,11 +35,15 @@ export function CreateFamilyDialog({ campaignId, children }: CreateFamilyDialogP
 
         setIsLoading(true);
         try {
-            const family = await createFamily(campaignId, alias);
-            toast.success("Family added successfully");
-            setOpen(false);
-            setAlias("");
-            router.push(`/admin/families/${family.id}`);
+            const result = await createFamily(campaignId, alias);
+            if (result.success && result.family) {
+                toast.success("Family added successfully");
+                setOpen(false);
+                setAlias("");
+                router.push(`/admin/families/${result.family.id}`);
+            } else {
+                throw new Error(result.error || "Failed to add family");
+            }
         } catch (error) {
             toast.error("Failed to add family");
             console.error(error);
@@ -53,7 +57,7 @@ export function CreateFamilyDialog({ campaignId, children }: CreateFamilyDialogP
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[425px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>Add Family</DialogTitle>
@@ -70,22 +74,24 @@ export function CreateFamilyDialog({ campaignId, children }: CreateFamilyDialogP
                                 value={alias}
                                 onChange={(e) => setAlias(e.target.value)}
                                 autoFocus
+                                className="h-11"
                             />
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                                 Rule: Use aliases only. No personally identifiable information.
                             </p>
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 sm:gap-4">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             onClick={() => setOpen(false)}
                             disabled={isLoading}
+                            className="w-full sm:w-auto h-11"
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoading || !alias.trim()}>
+                        <Button type="submit" disabled={isLoading || !alias.trim()} className="w-full sm:w-auto h-11">
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Add Family
                         </Button>

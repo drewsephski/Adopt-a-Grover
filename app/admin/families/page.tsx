@@ -1,6 +1,7 @@
 import { getActiveCampaign } from "@/lib/actions/campaign";
 import { FamilyList } from "@/components/admin/family-list";
 import { CreateFamilyDialog } from "@/components/admin/create-family-dialog";
+import { AdminBreadcrumbs } from "@/components/admin/admin-breadcrumbs";
 import { PlusCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +22,7 @@ export default async function AdminFamiliesPage() {
 
     return (
         <div className="space-y-8">
+            <AdminBreadcrumbs />
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground tracking-tight uppercase">Families</h1>

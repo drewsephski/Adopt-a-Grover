@@ -20,8 +20,6 @@ import { Label } from "@/components/ui/label";
 import {
     Loader2,
     Heart,
-    Mail,
-    User,
     Calendar,
     MapPin,
     Sparkles
@@ -89,18 +87,18 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                     {children}
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden border-none rounded-[2rem] shadow-2xl">
+            <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[520px] p-0 overflow-hidden border-none rounded-[2rem] shadow-2xl">
                 {step === 1 ? (
                     <form onSubmit={handleSubmit} className="flex flex-col">
-                        <div className="bg-primary/10 p-8 pb-6 text-center flex flex-col items-center">
+                        <div className="bg-primary/10 p-6 sm:p-8 pb-4 sm:pb-6 text-center flex flex-col items-center">
                             <div className="bg-background w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm mb-4">
                                 <Sparkles className="h-8 w-8 text-primary fill-primary/10" />
                             </div>
                             <DialogHeader className="space-y-1">
-                                <DialogTitle className="text-3xl font-bold tracking-tight text-foreground">
+                                <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                                     Adopt &quot;{family.alias}&quot;
                                 </DialogTitle>
-                                <DialogDescription className="text-muted-foreground text-base">
+                                <DialogDescription className="text-muted-foreground text-sm sm:text-base">
                                     By adopting this family, you&apos;re committing to provide ALL remaining items on their list.
                                 </DialogDescription>
                             </DialogHeader>
@@ -110,33 +108,27 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="donorName" className="text-sm font-bold text-foreground ml-1">Your Name</Label>
-                                    <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="donorName"
-                                            placeholder="Jane Doe"
-                                            className="pl-11 h-12 rounded-xl bg-muted border-border focus:bg-background transition-all"
-                                            required
-                                            value={formData.donorName}
-                                            onChange={(e) => setFormData({ ...formData, donorName: e.target.value })}
-                                        />
-                                    </div>
+                                    <Input
+                                        id="donorName"
+                                        placeholder="Jane Doe"
+                                        className="h-10 sm:h-12 rounded-xl bg-muted border-border focus:bg-background transition-all"
+                                        required
+                                        value={formData.donorName}
+                                        onChange={(e) => setFormData({ ...formData, donorName: e.target.value })}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="donorEmail" className="text-sm font-bold text-foreground ml-1">Email Address</Label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="donorEmail"
-                                            type="email"
-                                            placeholder="jane@example.com"
-                                            className="pl-11 h-12 rounded-xl bg-muted border-border focus:bg-background transition-all"
-                                            required
-                                            value={formData.donorEmail}
-                                            onChange={(e) => setFormData({ ...formData, donorEmail: e.target.value })}
-                                        />
-                                    </div>
+                                    <Input
+                                        id="donorEmail"
+                                        type="email"
+                                        placeholder="jane@example.com"
+                                        className="h-10 sm:h-12 rounded-xl bg-muted border-border focus:bg-background transition-all"
+                                        required
+                                        value={formData.donorEmail}
+                                        onChange={(e) => setFormData({ ...formData, donorEmail: e.target.value })}
+                                    />
                                     <p className="text-[10px] text-muted-foreground ml-1 italic">We&apos;ll send a full summary and drop-off instructions.</p>
                                 </div>
                             </div>
@@ -149,7 +141,7 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                                     </Badge>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/20">
+                                <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/20">
                                     {family.gifts
                                         .filter((g: GiftWithClaims) => getAvailableQuantity(g) > 0)
                                         .map((g: GiftWithClaims) => (
@@ -167,20 +159,22 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                             </div>
                         </div>
 
-                        <div className="p-8 pt-0 flex gap-3">
+                        <div className="p-6 sm:p-8 pt-0 flex gap-3 sm:gap-4">
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="flex-1 h-12 rounded-xl font-bold text-muted-foreground"
+                                className="w-full sm:w-auto rounded-xl font-bold text-muted-foreground text-sm sm:text-base"
                                 onClick={handleClose}
                                 disabled={isLoading}
+                                size="default"
                             >
                                 Cancel
                             </Button>
                             <Button
                                 type="submit"
-                                className="flex-[2] h-12 rounded-xl bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98] text-background"
+                                className="w-full sm:w-auto rounded-xl bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98] text-background text-sm sm:text-base"
                                 disabled={isLoading}
+                                size="default"
                             >
                                 {isLoading ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -192,12 +186,12 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                     </form>
                 ) : (
                     <div className="flex flex-col">
-                        <div className="bg-primary/10 p-10 flex flex-col items-center text-center">
+                        <div className="bg-primary/10 p-8 sm:p-10 flex flex-col items-center text-center">
                             <div className="bg-background w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl mb-6 animate-in zoom-in duration-500">
                                 <Heart className="h-10 w-10 text-primary fill-primary" />
                             </div>
-                            <h2 className="text-3xl font-bold text-foreground mb-2">You&apos;re a Hero!</h2>
-                            <p className="text-muted-foreground text-lg">Thank you for adopting &quot;{family.alias}&quot;.</p>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">You&apos;re a Hero!</h2>
+                            <p className="text-muted-foreground text-base sm:text-lg">Thank you for adopting &quot;{family.alias}&quot;.</p>
                         </div>
 
                         <div className="p-8 space-y-6">
@@ -230,7 +224,8 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
 
                             <Button
                                 onClick={handleClose}
-                                className="w-full h-12 rounded-xl bg-foreground hover:bg-foreground/90 text-background font-bold transition-all active:scale-[0.98]"
+                                className="w-full rounded-xl bg-foreground hover:bg-foreground/90 text-background font-bold transition-all active:scale-[0.98] text-sm sm:text-base"
+                                size="default"
                             >
                                 Close
                             </Button>

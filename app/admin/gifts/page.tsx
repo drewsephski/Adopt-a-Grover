@@ -1,6 +1,7 @@
 import { getActiveCampaign } from "@/lib/actions/campaign";
 import { getGiftsByCampaign } from "@/lib/actions/gift";
 import { GiftList } from "@/components/admin/gift-list";
+import { AdminBreadcrumbs } from "@/components/admin/admin-breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
 
@@ -19,6 +20,7 @@ export default async function AdminGiftsPage() {
 
     return (
         <div className="space-y-8">
+            <AdminBreadcrumbs />
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground tracking-tight uppercase">Gift Inventory</h1>

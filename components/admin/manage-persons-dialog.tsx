@@ -28,7 +28,7 @@ interface ManagePersonsDialogProps {
 export function ManagePersonsDialog({ familyId, familyAlias, children }: ManagePersonsDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [persons, setPersons] = useState<Array<{ id: string; firstName: string; lastName: string; role?: string | null; age?: number | null; gifts: any[] }>>([]);
+    const [persons, setPersons] = useState<Array<{ id: string; firstName: string; role?: string | null; age?: number | null; gifts: Array<{ id: string }> }>>([]);
     const [showDeleteDialog, setShowDeleteDialog] = useState<{ id: string; name: string } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -71,7 +71,7 @@ export function ManagePersonsDialog({ familyId, familyAlias, children }: ManageP
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Users className="h-5 w-5" />
@@ -95,7 +95,7 @@ export function ManagePersonsDialog({ familyId, familyAlias, children }: ManageP
                                 return (
                                     <div
                                         key={person.id}
-                                        className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
+                                        className="flex items-center justify-between p-5 sm:p-4 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 rounded-full bg-primary/10">
@@ -103,7 +103,7 @@ export function ManagePersonsDialog({ familyId, familyAlias, children }: ManageP
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-foreground">
-                                                    {person.firstName} {person.lastName}
+                                                    {person.firstName}
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <Badge variant="secondary" className="text-xs">
@@ -114,10 +114,10 @@ export function ManagePersonsDialog({ familyId, familyAlias, children }: ManageP
                                         </div>
                                         <Button
                                             variant="ghost"
-                                            size="sm"
-                                            onClick={() => setShowDeleteDialog({ id: person.id, name: `${person.firstName} ${person.lastName}` })}
+                                            size="icon"
+                                            onClick={() => setShowDeleteDialog({ id: person.id, name: person.firstName })}
                                             disabled={isDeleting}
-                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            className="size-11 text-destructive hover:text-destructive hover:bg-destructive/10"
                                         >
                                             {isDeleting && showDeleteDialog?.id === person.id ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -142,7 +142,7 @@ export function ManagePersonsDialog({ familyId, familyAlias, children }: ManageP
                             setPersons(result);
                         }}
                     >
-                        <Button className="w-full gap-2">
+                        <Button className="w-full gap-2 h-11">
                             <Plus className="h-4 w-4" />
                             Add New Person
                         </Button>
@@ -158,7 +158,7 @@ export function ManagePersonsDialog({ familyId, familyAlias, children }: ManageP
                         <AlertDialogHeader>
                             <AlertDialogTitle>Remove Person?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This will remove "{showDeleteDialog?.name}" from the family. Any gifts assigned to this person will become unassigned.
+                                This will remove {showDeleteDialog?.name} from the family. Any gifts assigned to this person will become unassigned.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -195,7 +195,6 @@ function CreatePersonDialog({ familyId, familyAlias, onSuccess, children }: { fa
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         firstName: "",
-        lastName: "",
         role: "",
         age: "",
     });
@@ -209,12 +208,11 @@ function CreatePersonDialog({ familyId, familyAlias, onSuccess, children }: { fa
             await createPerson(
                 familyId,
                 formData.firstName,
-                formData.lastName,
-                formData.role || undefined,
+                formData.role === "unassigned" ? undefined : formData.role || undefined,
                 formData.age ? parseInt(formData.age) : undefined
             );
-            toast.success(`Added ${formData.firstName} ${formData.lastName} to ${familyAlias}`);
-            setFormData({ firstName: "", lastName: "", role: "", age: "" });
+            toast.success(`Added ${formData.firstName} to ${familyAlias}`);
+            setFormData({ firstName: "", role: "", age: "" });
             setIsOpen(false);
             onSuccess?.();
         } catch (err: unknown) {
@@ -226,104 +224,97 @@ function CreatePersonDialog({ familyId, familyAlias, onSuccess, children }: { fa
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
+        <>
+            <div onClick={() => setIsOpen(true)}>
                 {children}
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Add Person to {familyAlias}</DialogTitle>
-                    <DialogDescription>
-                        Add a new person to this family. Role and age will be shown to donors.
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input
-                            id="firstName"
-                            placeholder="John"
-                            required
-                            value={formData.firstName}
-                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        />
-                    </div>
+            </div>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Add Person to {familyAlias}</DialogTitle>
+                        <DialogDescription>
+                            Add a new person to this family. Role and age will be shown to donors.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="firstName">Name</Label>
+                            <Input
+                                id="firstName"
+                                placeholder="John"
+                                required
+                                value={formData.firstName}
+                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                className="h-11"
+                            />
+                        </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input
-                            id="lastName"
-                            placeholder="Doe"
-                            required
-                            value={formData.lastName}
-                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        />
-                    </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="role">Role</Label>
+                            <Select
+                                value={formData.role}
+                                onValueChange={(value) => setFormData({ ...formData, role: value })}
+                            >
+                                <SelectTrigger id="role" className="h-11 px-4 py-3">
+                                    <SelectValue placeholder="Select role (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                                    <SelectItem value="Boy">Boy</SelectItem>
+                                    <SelectItem value="Girl">Girl</SelectItem>
+                                    <SelectItem value="Mother">Mother</SelectItem>
+                                    <SelectItem value="Father">Father</SelectItem>
+                                    <SelectItem value="Grandmother">Grandmother</SelectItem>
+                                    <SelectItem value="Grandfather">Grandfather</SelectItem>
+                                    <SelectItem value="Infant">Infant</SelectItem>
+                                    <SelectItem value="Teen">Teen</SelectItem>
+                                    <SelectItem value="Adult">Adult</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select
-                            value={formData.role}
-                            onValueChange={(value) => setFormData({ ...formData, role: value })}
-                        >
-                            <SelectTrigger id="role">
-                                <SelectValue placeholder="Select role (optional)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">Unassigned</SelectItem>
-                                <SelectItem value="Boy">Boy</SelectItem>
-                                <SelectItem value="Girl">Girl</SelectItem>
-                                <SelectItem value="Mother">Mother</SelectItem>
-                                <SelectItem value="Father">Father</SelectItem>
-                                <SelectItem value="Grandmother">Grandmother</SelectItem>
-                                <SelectItem value="Grandfather">Grandfather</SelectItem>
-                                <SelectItem value="Infant">Infant</SelectItem>
-                                <SelectItem value="Teen">Teen</SelectItem>
-                                <SelectItem value="Adult">Adult</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="age">Age</Label>
+                            <Input
+                                id="age"
+                                type="number"
+                                min="0"
+                                max="120"
+                                placeholder="12"
+                                value={formData.age}
+                                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                                className="h-11"
+                            />
+                        </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="age">Age</Label>
-                        <Input
-                            id="age"
-                            type="number"
-                            min="0"
-                            max="120"
-                            placeholder="12"
-                            value={formData.age}
-                            onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => setIsOpen(false)}
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            className="flex-1"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Adding...
-                                </>
-                            ) : (
-                                "Add Person"
-                            )}
-                        </Button>
-                    </div>
-                </form>
-            </DialogContent>
-        </Dialog>
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full sm:w-auto h-11"
+                                onClick={() => setIsOpen(false)}
+                                disabled={isLoading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                className="w-full sm:w-auto h-11"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Adding...
+                                    </>
+                                ) : (
+                                    "Add Person"
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

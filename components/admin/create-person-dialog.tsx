@@ -28,7 +28,6 @@ export function CreatePersonDialog({ familyId, familyAlias, onSuccess }: CreateP
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         firstName: "",
-        lastName: "",
         role: "",
         age: "",
     });
@@ -41,12 +40,11 @@ export function CreatePersonDialog({ familyId, familyAlias, onSuccess }: CreateP
             await createPerson(
                 familyId,
                 formData.firstName,
-                formData.lastName,
-                formData.role || undefined,
+                formData.role === "unassigned" ? undefined : formData.role || undefined,
                 formData.age ? parseInt(formData.age) : undefined
             );
-            toast.success(`Added ${formData.firstName} ${formData.lastName} to ${familyAlias}`);
-            setFormData({ firstName: "", lastName: "", role: "", age: "" });
+            toast.success(`Added ${formData.firstName} to ${familyAlias}`);
+            setFormData({ firstName: "", role: "", age: "" });
             setIsOpen(false);
             onSuccess?.();
         } catch (err: unknown) {
@@ -65,33 +63,23 @@ export function CreatePersonDialog({ familyId, familyAlias, onSuccess }: CreateP
                     Add Person
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Add Person to Family</DialogTitle>
                     <DialogDescription>
-                        Add a new person to "{familyAlias}" family. Role and age will be shown to donors.
+                        Add a new person to &quot;{familyAlias}&quot; family. Role and age will be shown to donors.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="firstName">Name</Label>
                         <Input
                             id="firstName"
                             placeholder="John"
                             required
                             value={formData.firstName}
                             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input
-                            id="lastName"
-                            placeholder="Doe"
-                            required
-                            value={formData.lastName}
-                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                            className="h-11"
                         />
                     </div>
 
@@ -101,11 +89,11 @@ export function CreatePersonDialog({ familyId, familyAlias, onSuccess }: CreateP
                             value={formData.role}
                             onValueChange={(value) => setFormData({ ...formData, role: value })}
                         >
-                            <SelectTrigger id="role">
+                            <SelectTrigger id="role" className="h-11 px-4 py-3">
                                 <SelectValue placeholder="Select role (optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Unassigned</SelectItem>
+                                <SelectItem value="unassigned">Unassigned</SelectItem>
                                 <SelectItem value="Boy">Boy</SelectItem>
                                 <SelectItem value="Girl">Girl</SelectItem>
                                 <SelectItem value="Mother">Mother</SelectItem>
@@ -129,14 +117,15 @@ export function CreatePersonDialog({ familyId, familyAlias, onSuccess }: CreateP
                             placeholder="12"
                             value={formData.age}
                             onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                            className="h-11"
                         />
                     </div>
 
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2">
                         <Button
                             type="button"
-                            variant="outline"
-                            className="flex-1"
+                            variant="ghost"
+                            className="w-full sm:w-auto h-11"
                             onClick={() => setIsOpen(false)}
                             disabled={isLoading}
                         >
@@ -144,7 +133,7 @@ export function CreatePersonDialog({ familyId, familyAlias, onSuccess }: CreateP
                         </Button>
                         <Button
                             type="submit"
-                            className="flex-1"
+                            className="w-full sm:w-auto h-11"
                             disabled={isLoading}
                         >
                             {isLoading ? (

@@ -19,14 +19,16 @@ interface ClaimConfirmationEmailProps {
         familyAlias: string;
     }[];
     dropOffAddress: string;
+    dropOffDeadline?: Date;
 }
 
 export const ClaimConfirmationEmail = ({
     donorName,
     items,
     dropOffAddress,
+    dropOffDeadline,
 }: ClaimConfirmationEmailProps) => {
-    const previewText = `Thank you for your donation to Adopt a Grover!`;
+    const previewText = `Thank you for your donation to Pitch In List!`;
 
     return (
         <Html>
@@ -36,7 +38,7 @@ export const ClaimConfirmationEmail = ({
                 <Container style={container}>
                     <Heading style={h1}>Thank you, {donorName}!</Heading>
                     <Text style={text}>
-                        We&apos;ve successfully recorded your gift claim for <strong>Adopt a Grover</strong>. Your generosity makes a real difference in our community!
+                        We&apos;ve successfully recorded your gift claim for <strong>Pitch In List</strong>. Your generosity makes a real difference in our community!
                     </Text>
 
                     <Section style={section}>
@@ -64,7 +66,7 @@ export const ClaimConfirmationEmail = ({
                                 <strong>{dropOffAddress}</strong>
                                 <br />
                                 <span style={{ fontSize: "14px", color: "#666", marginTop: "8px", display: "block" }}>
-                                    <strong>Deadline:</strong> Monday, Dec 16th
+                                    <strong>Deadline:</strong> {dropOffDeadline ? dropOffDeadline.toLocaleDateString() : "TBD"}
                                 </span>
                             </Text>
                         </div>

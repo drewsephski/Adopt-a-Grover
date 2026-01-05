@@ -12,7 +12,6 @@ import type { GiftWithClaims } from "@/lib/types";
 interface Person {
     id: string;
     firstName: string;
-    lastName: string;
     role?: string | null;
     age?: number | null;
     gifts: GiftWithClaims[];
@@ -66,7 +65,7 @@ export function PersonGiftsSection({ familyId, persons, unassignedGifts, familyA
                                                 </div>
                                                 <div>
                                                     <h3 className="font-semibold text-foreground text-lg">
-                                                        {person.firstName} {person.lastName}
+                                                        {person.firstName}
                                                     </h3>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         {person.role && (
@@ -87,7 +86,7 @@ export function PersonGiftsSection({ familyId, persons, unassignedGifts, familyA
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <CreateGiftDialog familyId={familyId} personId={person.id} personName={`${person.firstName} ${person.lastName}`}>
+                                                <CreateGiftDialog familyId={familyId} personId={person.id} personName={person.firstName}>
                                                     <Button size="sm" variant="outline" className="gap-2">
                                                         <Plus className="h-4 w-4" />
                                                         Add Gift
@@ -120,7 +119,7 @@ export function PersonGiftsSection({ familyId, persons, unassignedGifts, familyA
                                         <div className="p-8 text-center">
                                             <Gift className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-50" />
                                             <p className="text-sm text-muted-foreground">No gifts added yet</p>
-                                            <p className="text-xs text-muted-foreground/70 mt-1">Add gift ideas for {person.firstName}</p>
+                                            <p className="text-xs text-muted-foreground/70 mt-1">Add gift ideas for this person</p>
                                         </div>
                                     )}
                                 </Card>

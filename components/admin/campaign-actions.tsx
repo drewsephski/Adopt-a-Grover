@@ -73,7 +73,7 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={isLoading}>
+                    <Button variant="ghost" className="h-8 w-8 p-0" size="icon" disabled={isLoading}>
                         <span className="sr-only">Open menu</span>
                         {isLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -143,13 +143,14 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isLoading} size="sm">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={(e) => {
                                 e.preventDefault();
                                 handleDelete();
                             }}
                             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                            size="sm"
                             disabled={isLoading}
                         >
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

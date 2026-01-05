@@ -37,18 +37,18 @@ export default async function AdminDashboardPage() {
                 <div className="bg-primary/10 p-6 rounded-full mb-6">
                     <Calendar className="h-12 w-12 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">No Active Campaign</h2>
-                <p className="text-muted-foreground max-w-sm mb-8">
-                    Welcome to Adopt a Grover! Start by creating a new campaign for your donation drive.
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">No Active Campaign</h2>
+                <p className="text-muted-foreground text-sm sm:text-base max-w-sm mb-6 sm:mb-8">
+                    Welcome to Pitch In List! Start by creating a new campaign for your donation drive.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <Button asChild size="lg">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-sm">
+                    <Button asChild size="default" className="w-full sm:w-auto">
                         <Link href="/admin/campaigns">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Manage Campaigns
                         </Link>
                     </Button>
-                    <Button asChild variant="outline" size="lg">
+                    <Button asChild variant="outline" size="default" className="w-full sm:w-auto">
                         <Link href="/admin/past-events">
                             <History className="mr-2 h-4 w-4" />
                             View Past Events
@@ -79,12 +79,12 @@ export default async function AdminDashboardPage() {
         .slice(0, 5);
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Header Section */}
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground tracking-tight uppercase">Dashboard</h1>
-                    <p className="text-muted-foreground">Overview of the &quot;{activeCampaign.name}&quot; campaign.</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight uppercase">Dashboard</h1>
+                    <p className="text-muted-foreground text-sm sm:text-base">Overview of the &quot;{activeCampaign.name}&quot; campaign.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 py-1 px-3">
@@ -98,7 +98,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Completion"
                     value={`${progress.percentComplete}%`}
@@ -125,7 +125,7 @@ export default async function AdminDashboardPage() {
                 />
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-2">
+            <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
                 {/* Needs Attention */}
                 <Card className="shadow-sm border-border">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">

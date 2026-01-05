@@ -53,7 +53,7 @@ export function EditFamilyDialog({ family, children }: EditFamilyDialogProps) {
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="max-w-[95vw] max-w-md sm:max-w-[425px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>Edit Family</DialogTitle>
@@ -70,22 +70,24 @@ export function EditFamilyDialog({ family, children }: EditFamilyDialogProps) {
                                 value={alias}
                                 onChange={(e) => setAlias(e.target.value)}
                                 autoFocus
+                                className="h-11"
                             />
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                                 Rule: Use aliases only. No personally identifiable information.
                             </p>
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 sm:gap-4">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             onClick={() => setOpen(false)}
                             disabled={isLoading}
+                            className="w-full sm:w-auto h-11"
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoading || !alias.trim() || alias === family.alias}>
+                        <Button type="submit" disabled={isLoading || !alias.trim() || alias === family.alias} className="w-full sm:w-auto h-11">
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Changes
                         </Button>
