@@ -15,6 +15,18 @@ async function requireAuth() {
     if (!userId) {
         throw new Error("Unauthorized: Admin access required");
     }
+    
+    // Check if user is the admin
+    const adminUserId = process.env.ADMIN_USER_ID;
+    if (!adminUserId) {
+        throw new Error("Server configuration error: Admin user ID not set");
+    }
+    
+    if (userId !== adminUserId) {
+        console.warn(`Unauthorized admin access attempt by user: ${userId}`);
+        throw new Error("Access denied: Admin privileges required");
+    }
+    
     return userId;
 }
 
@@ -372,7 +384,111 @@ export async function sendRemindersToAllDonors(campaignId: string) {
     try {
         await requireAuth();
 
-        return await sendDeadlineReminders(campaignId);
+        const campaign = await db.campaign.findUnique({
+            where: { id: campaignId },
+            include: {
+                families: {
+                    include: {
+                        gifts: {
+                            include: {
+                                claims: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!campaign) {
+            throw new Error("Campaign not found");
+        }
+
+        // Group claims by donor to avoid duplicate emails
+        const donorClaims = new Map<
+            string,
+            {
+                name: string;
+                email: string;
+                items: { name: string; quantity: number; familyAlias: string }[];
+            }
+        >();
+
+        campaign.families.forEach((family) => {
+            family.gifts.forEach((gift) => {
+                gift.claims.forEach((claim) => {
+                    const key = claim.donorEmail.toLowerCase();
+                    if (!donorClaims.has(key)) {
+                        donorClaims.set(key, {
+                            name: claim.donorName,
+                            email: claim.donorEmail,
+                            items: [],
+                        });
+                    }
+                    donorClaims.get(key)!.items.push({
+                        name: gift.name,
+                        quantity: claim.quantity,
+                        familyAlias: family.alias,
+                    });
+                });
+            });
+        });
+
+        if (donorClaims.size === 0) {
+            return {
+                success: false,
+                message: "No donors found for this campaign",
+            };
+        }
+
+        // Calculate days until deadline if available
+        let daysUntilDeadline = 0;
+        if (campaign.dropOffDeadline) {
+            daysUntilDeadline = Math.ceil(
+                (campaign.dropOffDeadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+            );
+        }
+
+        // Send reminders to all donors
+        const reminderPromises = Array.from(donorClaims.values()).map((donor) =>
+            sendDonorReminder({
+                donorEmail: donor.email,
+                donorName: donor.name,
+                items: donor.items,
+                dropOffAddress: campaign.dropOffAddress || undefined,
+                dropOffDeadline: campaign.dropOffDeadline || undefined,
+                daysUntilDeadline,
+                campaignName: campaign.name,
+            })
+        );
+
+        const results = await Promise.allSettled(reminderPromises);
+        const successful = results.filter((r) => r.status === "fulfilled").length;
+        const failed = results.filter((r) => r.status === "rejected").length;
+
+        // Log failures
+        results.forEach((result, index) => {
+            if (result.status === "rejected") {
+                console.error(
+                    `Failed to send reminder to ${Array.from(donorClaims.values())[index].email}:`,
+                    result.reason
+                );
+            }
+        });
+
+        await sendAdminNotification({
+            adminEmail: process.env.ADMIN_EMAIL || "test@example.com",
+            subject: `Bulk reminder emails sent (${donorClaims.size} donors)`,
+            message: `Sent ${successful} reminder emails${failed > 0 ? ` (${failed} failed)` : ""} for ${campaign.name}.\n\n${campaign.dropOffDeadline ? `Deadline: ${campaign.dropOffDeadline.toLocaleDateString()}\nDays remaining: ${daysUntilDeadline}` : 'No deadline set'}\nUnique donors: ${donorClaims.size}`,
+            campaignName: campaign.name,
+        });
+
+        return {
+            success: true,
+            sent: successful,
+            failed,
+            totalDonors: donorClaims.size,
+            message: `Sent ${successful} reminders to donors`,
+        };
     } catch (error) {
         console.error("Error sending reminders to all donors:", error);
         return {

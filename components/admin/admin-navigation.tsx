@@ -15,7 +15,8 @@ import {
     Heart,
     Box,
     History,
-    Menu
+    Menu,
+    Mail
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -26,6 +27,7 @@ const navigation = [
     { name: "Families", href: "/admin/families", icon: <Users className="h-4 w-4" /> },
     { name: "Gifts", href: "/admin/gifts", icon: <Box className="h-4 w-4" /> },
     { name: "Claims", href: "/admin/claims", icon: <Heart className="h-4 w-4" /> },
+    { name: "Email Templates", href: "/admin/email-templates", icon: <Mail className="h-4 w-4" /> },
     { name: "Settings", href: "/admin/settings", icon: <Settings className="h-4 w-4" /> },
 ];
 
@@ -90,7 +92,7 @@ export function AdminMobileMenu() {
                 <div className="flex h-full flex-col">
                     {/* Header */}
                     <div className="flex h-14 items-center border-b px-4">
-                        <Link href="/admin" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+                        <Link href="/" className="flex items-center gap-2 font-semibold text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors">
                             <Package className="h-5 w-5 text-sidebar-primary" />
                             <span>Pitch In List</span>
                         </Link>
@@ -127,7 +129,7 @@ export function AdminSidebar() {
         <aside className="hidden lg:flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
             {/* Header */}
             <div className="flex h-14 items-center border-b border-sidebar-border px-4">
-                <Link href="/admin" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+                <Link href="/" className="flex items-center gap-2 font-semibold text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors">
                     <Package className="h-5 w-5 text-sidebar-primary" />
                     <span className="text-sm">Pitch In List</span>
                 </Link>

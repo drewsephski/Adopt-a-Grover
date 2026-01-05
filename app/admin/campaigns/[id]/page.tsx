@@ -6,7 +6,8 @@ import {
     Box,
     Users,
     PlusCircle,
-    CheckCircle2
+    CheckCircle2,
+    Mail
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,6 +18,7 @@ import { CreateFamilyDialog } from "@/components/admin/create-family-dialog";
 import { ImportCSVDialog } from "@/components/admin/import-csv-dialog";
 import { ExportButton } from "@/components/admin/export-button";
 import { AdminBreadcrumbs } from "@/components/admin/admin-breadcrumbs";
+import { BulkEmailReminderDialog } from "@/components/admin/bulk-email-reminder-dialog";
 import { FileUp } from "lucide-react";
 
 export default async function CampaignDetailPage({
@@ -32,6 +34,15 @@ export default async function CampaignDetailPage({
     }
 
     const stats = getCampaignProgress(campaign);
+
+    // Calculate unique donor count
+    const uniqueDonors = new Set(
+        campaign.families.flatMap((f) => 
+            f.gifts.flatMap((g) => 
+                g.claims.map((c) => c.donorEmail.toLowerCase())
+            )
+        )
+    ).size;
 
     return (
         <div className="space-y-8">
@@ -51,6 +62,17 @@ export default async function CampaignDetailPage({
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <BulkEmailReminderDialog
+                        campaignId={campaign.id}
+                        campaignName={campaign.name}
+                        donorCount={uniqueDonors}
+                        dropOffDeadline={campaign.dropOffDeadline || undefined}
+                    >
+                        <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:text-primary">
+                            <Mail className="mr-2 h-4 w-4" />
+                            Send Reminders
+                        </Button>
+                    </BulkEmailReminderDialog>
                     <Button variant="outline" size="sm" asChild>
                         <Link href={`/admin/campaigns/${campaign.id}/settings`}>
                             <Settings2 className="mr-2 h-4 w-4" />
@@ -84,13 +106,17 @@ export default async function CampaignDetailPage({
                     icon={<Heart className="h-4 w-4" />}
                     label="View All Claims"
                 />
-
-                <ImportCSVDialog campaignId={campaign.id}>
+                <BulkEmailReminderDialog
+                    campaignId={campaign.id}
+                    campaignName={campaign.name}
+                    donorCount={uniqueDonors}
+                    dropOffDeadline={campaign.dropOffDeadline || undefined}
+                >
                     <Button variant="outline" className="h-12 justify-start gap-2 rounded-xl bg-card border-border hover:bg-primary/5 hover:text-primary transition-all">
-                        <FileUp className="h-4 w-4" />
-                        <span>Import Document</span>
+                        <Mail className="h-4 w-4" />
+                        <span>Send Reminders</span>
                     </Button>
-                </ImportCSVDialog>
+                </BulkEmailReminderDialog>
                 <Button variant="outline" className="h-12 justify-start gap-2 rounded-xl bg-card border-border hover:bg-primary/5 hover:text-primary transition-all" asChild>
                     <Link href={`/admin/campaigns/${campaign.id}/settings`}>
                         <Settings2 className="h-4 w-4" />

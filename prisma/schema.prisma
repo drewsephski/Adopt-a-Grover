@@ -27,6 +27,15 @@ enum OrganizationType {
   BUSINESS
 }
 
+enum EmailTemplateType {
+  CLAIM_CONFIRMATION
+  DONOR_REMINDER
+  WELCOME_EMAIL
+  CAMPAIGN_UPDATE
+  CAMPAIGN_COMPLETION
+  ADMIN_NOTIFICATION
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -131,4 +140,18 @@ model Settings {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model EmailTemplate {
+  id          String             @id @default(cuid())
+  type        EmailTemplateType  @unique
+  name        String             // Human-readable name
+  subject     String             // Email subject with placeholders
+  htmlContent String?            // HTML template content
+  textContent String?            // Plain text template content
+  isActive    Boolean            @default(true)
+  description String?            // Optional description
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 }
