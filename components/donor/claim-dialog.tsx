@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { getAvailableQuantity } from "@/lib/types";
 import type { GiftWithClaims } from "@/lib/types";
 import { claimGift } from "@/lib/actions/claim";
@@ -38,6 +39,7 @@ interface ClaimDialogProps {
 }
 
 export function ClaimDialog({ gift, children, disabled }: ClaimDialogProps) {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -47,21 +49,40 @@ export function ClaimDialog({ gift, children, disabled }: ClaimDialogProps) {
         quantity: 1,
     });
 
-    const available = getAvailableQuantity(gift);
+    // Calculate how many of this gift are available in total
+    const totalAvailable = getAvailableQuantity(gift);
+    
+    // Calculate how many this user has already claimed (if email is entered)
+    const userAlreadyClaimed = gift.claims?.reduce((sum, claim) => {
+        return formData.donorEmail.toLowerCase() === claim.donorEmail.toLowerCase()
+            ? sum + claim.quantity
+            : sum;
+    }, 0) || 0;
+    
+    // Calculate how many more this user can claim
+    const userCanClaim = totalAvailable;
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: Event) {
         e.preventDefault();
         setIsLoading(true);
 
         try {
-            await claimGift(
+            const result = await claimGift(
                 gift.id,
                 formData.donorName,
                 formData.donorEmail,
                 formData.quantity
             );
+            
+            // Check if the claim was successful
+            if (!result.success) {
+                throw new Error(result.error || "Failed to claim gift");
+            }
+            
             setStep(2);
             toast.success("Gift claimed! Thank you for your generosity.");
+            // Refresh the page immediately after successful claim
+            router.refresh();
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
             toast.error(message);
@@ -141,7 +162,7 @@ export function ClaimDialog({ gift, children, disabled }: ClaimDialogProps) {
                                     <p className="text-[10px] text-muted-foreground ml-1 italic">We&apos;ll send a confirmation and drop-off instructions.</p>
                                 </div>
 
-                                {available > 1 && (
+                                {userCanClaim > 1 && (
                                     <div className="space-y-2">
                                         <Label htmlFor="quantity" className="text-sm font-bold text-foreground ml-1">Quantity</Label>
                                         <Select
@@ -149,10 +170,10 @@ export function ClaimDialog({ gift, children, disabled }: ClaimDialogProps) {
                                             onValueChange={(value) => setFormData({ ...formData, quantity: parseInt(value) })}
                                         >
                                             <SelectTrigger id="quantity" className="h-10 sm:h-12 rounded-xl bg-muted border-border focus:bg-background transition-all text-foreground font-medium">
-                                                <SelectValue placeholder="Select quantity" />
+                                                <SelectValue placeholder={`Select quantity (max ${userCanClaim})`} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Array.from({ length: available }).map((_, i) => (
+                                                {Array.from({ length: userCanClaim }).map((_, i) => (
                                                     <SelectItem key={i + 1} value={(i + 1).toString()}>
                                                         {i + 1}
                                                     </SelectItem>

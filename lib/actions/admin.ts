@@ -128,16 +128,16 @@ export async function sendCampaignSummary(campaignId: string) {
                 0
             );
         const totalFamilies = campaign.families.length;
-        const fullyAdoptedFamilies = campaign.families.filter((f) =>
+        const fullyClaimedFamilies = campaign.families.filter((f) =>
             f.gifts.every((g) => getAvailableQuantity(g) === 0)
         ).length;
-        const partiallyAdoptedFamilies = campaign.families.filter(
+        const partiallyClaimedFamilies = campaign.families.filter(
             (f) =>
                 f.gifts.some((g) => getAvailableQuantity(g) === 0) &&
                 f.gifts.some((g) => getAvailableQuantity(g) > 0)
         ).length;
-        const unadoptedFamilies =
-            totalFamilies - fullyAdoptedFamilies - partiallyAdoptedFamilies;
+        const unclaimedFamilies =
+            totalFamilies - fullyClaimedFamilies - partiallyClaimedFamilies;
 
         // Get unique donors
         const uniqueDonors = new Set(
@@ -182,14 +182,14 @@ Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString
 ═══════════════════════════════════════
 • Gifts: ${claimedQuantity}/${totalQuantity} claimed (${Math.round((claimedQuantity / totalQuantity) * 100)}%)
 • Unique gift items: ${totalGifts}
-• Families: ${fullyAdoptedFamilies} fully adopted, ${partiallyAdoptedFamilies} partial, ${unadoptedFamilies} none
+• Families: ${fullyClaimedFamilies} fully claimed, ${partiallyClaimedFamilies} partial, ${unclaimedFamilies} none
 • Unique donors: ${uniqueDonors}
 
 👥 FAMILY STATUS
 ═══════════════════════════════════════
-✅ Fully Adopted: ${fullyAdoptedFamilies}/${totalFamilies} (${Math.round((fullyAdoptedFamilies / totalFamilies) * 100)}%)
-🔄 Partially Adopted: ${partiallyAdoptedFamilies}/${totalFamilies}
-❌ Not Yet Adopted: ${unadoptedFamilies}/${totalFamilies}
+✅ Fully Claimed: ${fullyClaimedFamilies}/${totalFamilies} (${Math.round((fullyClaimedFamilies / totalFamilies) * 100)}%)
+🔄 Partially Claimed: ${partiallyClaimedFamilies}/${totalFamilies}
+❌ Not Yet Claimed: ${unclaimedFamilies}/${totalFamilies}
 
 🎁 RECENT ACTIVITY
 ═══════════════════════════════════════
@@ -224,9 +224,9 @@ ${needsAttention.length > 0 ? needsAttention.slice(0, 5).map(({ family, percent 
                 totalQuantity,
                 claimedQuantity,
                 totalFamilies,
-                fullyAdoptedFamilies,
-                partiallyAdoptedFamilies,
-                unadoptedFamilies,
+                fullyClaimedFamilies,
+                partiallyClaimedFamilies,
+                unclaimedFamilies,
                 uniqueDonors,
             },
         };
@@ -560,7 +560,7 @@ ${lowAvailabilityGifts.map((gift) =>
 ).join("\n")}
 
 💡 SUGGESTIONS:
-• Promote these items to donors via email or social media
+• Promote these items to people via email or social media
 • Consider highlighting them on the donation page
 • Reach out to past donors who might be interested
 
@@ -669,10 +669,10 @@ export async function exportCampaignData(campaignId: string) {
                 percentComplete: totalGifts > 0 ? Math.round((claimedGifts / totalGifts) * 100) : 0,
                 status:
                     claimedGifts === 0
-                        ? "Unadopted"
+                        ? "Unclaimed"
                         : claimedGifts === totalGifts
-                        ? "Fully Adopted"
-                        : "Partially Adopted",
+                        ? "Fully Claimed"
+                        : "Partially Claimed",
             };
         });
 
@@ -686,8 +686,8 @@ export async function exportCampaignData(campaignId: string) {
                 totalDonors: new Set(donorData.map((d) => d.donorEmail)).size,
                 totalClaims: donorData.length,
                 totalFamilies: familyData.length,
-                fullyAdoptedFamilies: familyData.filter(
-                    (f) => f.status === "Fully Adopted"
+                fullyClaimedFamilies: familyData.filter(
+                    (f) => f.status === "Fully Claimed"
                 ).length,
             },
         };

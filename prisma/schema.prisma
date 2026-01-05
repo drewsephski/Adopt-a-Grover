@@ -1,6 +1,3 @@
-// Pitch In List - Prisma Schema
-// Neon PostgreSQL Database
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,9 +6,100 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============================================
-// ENUMS
-// ============================================
+model Campaign {
+  id               String           @id @default(cuid())
+  name             String
+  status           CampaignStatus   @default(DRAFT)
+  organizationType OrganizationType @default(NONPROFIT)
+  startsAt         DateTime?
+  endsAt           DateTime?
+  dropOffDeadline  DateTime?
+  dropOffAddress   String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  families         Family[]
+}
+
+model Family {
+  id         String   @id @default(cuid())
+  alias      String
+  campaignId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  gifts      Gift[]
+  persons    Person[]
+
+  @@index([campaignId])
+}
+
+model Person {
+  id        String   @id @default(cuid())
+  firstName String
+  familyId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  age       Int?
+  role      String?
+  gifts     Gift[]
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+}
+
+model Gift {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  productUrl  String?
+  quantity    Int
+  familyId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  personId    String?
+  claims      Claim[]
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  person      Person?  @relation(fields: [personId], references: [id])
+
+  @@index([familyId])
+  @@index([personId])
+}
+
+model Claim {
+  id         String   @id @default(cuid())
+  giftId     String
+  donorName  String
+  donorEmail String
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+  gift       Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@index([giftId])
+}
+
+model Settings {
+  id                     String   @id @default(cuid())
+  emailNotifications     Boolean  @default(true)
+  autoArchiveCampaigns   Boolean  @default(true)
+  automaticBackups       Boolean  @default(true)
+  twoFactorAuth          Boolean  @default(false)
+  allowAdminRegistration Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model EmailTemplate {
+  id          String            @id @default(cuid())
+  type        EmailTemplateType @unique
+  name        String
+  subject     String
+  htmlContent String?
+  textContent String?
+  isActive    Boolean           @default(true)
+  description String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
 
 enum CampaignStatus {
   DRAFT
@@ -34,124 +122,4 @@ enum EmailTemplateType {
   CAMPAIGN_UPDATE
   CAMPAIGN_COMPLETION
   ADMIN_NOTIFICATION
-}
-
-// ============================================
-// MODELS
-// ============================================
-
-model Campaign {
-  id               String           @id @default(cuid())
-  name             String
-  status           CampaignStatus    @default(DRAFT)
-  organizationType OrganizationType @default(NONPROFIT)
-  startsAt         DateTime?
-  endsAt           DateTime?
-  dropOffDeadline  DateTime?
-  dropOffAddress   String?
-
-  families         Family[]
-
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-}
-
-model Family {
-  id         String   @id @default(cuid())
-  alias      String
-  campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-
-  persons    Person[]
-  gifts      Gift[]
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([campaignId])
-}
-
-model Person {
-  id         String   @id @default(cuid())
-  firstName  String
-  role       String?  // e.g., "Boy", "Girl", "Mother", "Father"
-  age        Int?     // Age in years
-
-  familyId   String
-  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-
-  gifts      Gift[]
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([familyId])
-}
-
-model Gift {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-  productUrl  String?
-  quantity    Int
-
-  familyId    String
-  family      Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
-
-  personId    String?
-  person      Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
-
-  claims      Claim[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([familyId])
-  @@index([personId])
-}
-
-model Claim {
-  id         String   @id @default(cuid())
-  giftId     String
-  gift       Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
-
-  donorName  String
-  donorEmail String
-  quantity   Int      @default(1)
-
-  createdAt  DateTime @default(now())
-
-  @@index([giftId])
-}
-
-model Settings {
-  id                    String @id @default(cuid())
-  
-  // Essential Settings
-  emailNotifications    Boolean @default(true)
-  autoArchiveCampaigns  Boolean @default(true)
-  
-  // Database Management
-  automaticBackups      Boolean @default(true)
-  
-  // Security
-  twoFactorAuth         Boolean @default(false)
-  allowAdminRegistration Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model EmailTemplate {
-  id          String             @id @default(cuid())
-  type        EmailTemplateType  @unique
-  name        String             // Human-readable name
-  subject     String             // Email subject with placeholders
-  htmlContent String?            // HTML template content
-  textContent String?            // Plain text template content
-  isActive    Boolean            @default(true)
-  description String?            // Optional description
-
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
 }

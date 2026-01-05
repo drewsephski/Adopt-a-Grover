@@ -1,5 +1,6 @@
 import { getSettings } from "@/lib/actions/settings";
-import { getEmailTemplate, renderTemplate, EmailTemplateType } from "@/lib/actions/email-templates";
+import { getEmailTemplate, renderTemplate } from "@/lib/actions/email-templates";
+import { EmailTemplateType } from "@/lib/email-template-types";
 import { 
     sendEmail, 
     sendAdminNotification as sendAdminNotificationEmail, 
@@ -74,9 +75,9 @@ export class EmailService {
                     dropOffDeadline: params.dropOffDeadline?.toLocaleDateString() || "TBD"
                 };
 
-                const subject = renderTemplate(template.subject, variables);
-                const htmlContent = template.htmlContent ? renderTemplate(template.htmlContent, variables) : undefined;
-                const textContent = template.textContent ? renderTemplate(template.textContent, variables) : undefined;
+                const subject = await renderTemplate(template.subject, variables);
+                const htmlContent = template.htmlContent ? await renderTemplate(template.htmlContent, variables) : undefined;
+                const textContent = template.textContent ? await renderTemplate(template.textContent, variables) : undefined;
 
                 return await sendEmail({
                     to: params.donorEmail,
@@ -170,9 +171,9 @@ export class EmailService {
                     isUrgent: urgencyLevel === 'high'
                 };
 
-                const subject = renderTemplate(template.subject, variables);
-                const htmlContent = template.htmlContent ? renderTemplate(template.htmlContent, variables) : undefined;
-                const textContent = template.textContent ? renderTemplate(template.textContent, variables) : undefined;
+                const subject = await renderTemplate(template.subject, variables);
+                const htmlContent = template.htmlContent ? await renderTemplate(template.htmlContent, variables) : undefined;
+                const textContent = template.textContent ? await renderTemplate(template.textContent, variables) : undefined;
 
                 return await sendEmail({
                     to: params.donorEmail,
@@ -250,9 +251,9 @@ export class EmailService {
                     campaignName: params.campaignName || ''
                 };
 
-                const subject = renderTemplate(template.subject, variables);
-                const htmlContent = template.htmlContent ? renderTemplate(template.htmlContent, variables) : undefined;
-                const textContent = template.textContent ? renderTemplate(template.textContent, variables) : undefined;
+                const subject = await renderTemplate(template.subject, variables);
+                const htmlContent = template.htmlContent ? await renderTemplate(template.htmlContent, variables) : undefined;
+                const textContent = template.textContent ? await renderTemplate(template.textContent, variables) : undefined;
 
                 return await sendEmail({
                     to: params.recipient.email,
@@ -300,9 +301,9 @@ export class EmailService {
                     completionRate
                 };
 
-                const subject = renderTemplate(template.subject, variables);
-                const htmlContent = template.htmlContent ? renderTemplate(template.htmlContent, variables) : undefined;
-                const textContent = template.textContent ? renderTemplate(template.textContent, variables) : undefined;
+                const subject = await renderTemplate(template.subject, variables);
+                const htmlContent = template.htmlContent ? await renderTemplate(template.htmlContent, variables) : undefined;
+                const textContent = template.textContent ? await renderTemplate(template.textContent, variables) : undefined;
 
                 return await sendEmail({
                     to: EMAIL_CONFIG.adminEmail,

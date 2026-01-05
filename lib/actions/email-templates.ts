@@ -2,30 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-
-export const EmailTemplateType = {
-  CLAIM_CONFIRMATION: "CLAIM_CONFIRMATION",
-  DONOR_REMINDER: "DONOR_REMINDER", 
-  WELCOME_EMAIL: "WELCOME_EMAIL",
-  CAMPAIGN_UPDATE: "CAMPAIGN_UPDATE",
-  CAMPAIGN_COMPLETION: "CAMPAIGN_COMPLETION",
-  ADMIN_NOTIFICATION: "ADMIN_NOTIFICATION"
-} as const;
-
-export type EmailTemplateType = typeof EmailTemplateType[keyof typeof EmailTemplateType];
-
-export interface EmailTemplate {
-  id: string;
-  type: EmailTemplateType;
-  name: string;
-  subject: string;
-  htmlContent: string | null;
-  textContent: string | null;
-  isActive: boolean;
-  description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { EmailTemplateType, EmailTemplate } from "@/lib/email-template-types";
 
 export async function getEmailTemplates(): Promise<EmailTemplate[]> {
   try {
@@ -92,30 +69,37 @@ export async function updateEmailTemplate(
     // Build the update query dynamically
     const updateFields = [];
     const updateValues = [];
+    let paramIndex = 1;
     
     if (data.name !== undefined) {
-      updateFields.push(`name = ?`);
+      updateFields.push(`name = $${paramIndex}`);
       updateValues.push(data.name);
+      paramIndex++;
     }
     if (data.subject !== undefined) {
-      updateFields.push(`subject = ?`);
+      updateFields.push(`subject = $${paramIndex}`);
       updateValues.push(data.subject);
+      paramIndex++;
     }
     if (data.htmlContent !== undefined) {
-      updateFields.push(`"htmlContent" = ?`);
+      updateFields.push(`"htmlContent" = $${paramIndex}`);
       updateValues.push(data.htmlContent);
+      paramIndex++;
     }
     if (data.textContent !== undefined) {
-      updateFields.push(`"textContent" = ?`);
+      updateFields.push(`"textContent" = $${paramIndex}`);
       updateValues.push(data.textContent);
+      paramIndex++;
     }
     if (data.isActive !== undefined) {
-      updateFields.push(`"isActive" = ?`);
+      updateFields.push(`"isActive" = $${paramIndex}`);
       updateValues.push(data.isActive);
+      paramIndex++;
     }
     if (data.description !== undefined) {
-      updateFields.push(`description = ?`);
+      updateFields.push(`description = $${paramIndex}`);
       updateValues.push(data.description);
+      paramIndex++;
     }
     
     updateFields.push(`"updatedAt" = NOW()`);
@@ -124,7 +108,7 @@ export async function updateEmailTemplate(
     const query = `
       UPDATE "EmailTemplate" 
       SET ${updateFields.join(', ')} 
-      WHERE id = ?
+      WHERE id = $${paramIndex}
       RETURNING *
     `;
     
@@ -222,7 +206,137 @@ export async function seedDefaultEmailTemplates() {
 }
 
 // Template rendering helper
-export function renderTemplate(template: string, variables: Record<string, string | number | boolean | Array<Record<string, string | number>>>): string {
+export async function sendTestEmailTemplate(
+  type: EmailTemplateType,
+  testEmails: string[],
+  variables: Record<string, string | number | boolean | Array<Record<string, string | number>>> = {}
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const template = await getEmailTemplate(type);
+    
+    if (!template) {
+      return { success: false, message: "Template not found" };
+    }
+
+    if (!template.isActive) {
+      return { success: false, message: "Template is not active" };
+    }
+
+    // Import the sendEmail function
+    const { sendEmail: sendEmailFunc } = await import("@/lib/email");
+    const { renderTemplate: renderTemplateFunc } = await import("@/lib/actions/email-templates");
+    const defaultVariables = {
+      [EmailTemplateType.CLAIM_CONFIRMATION]: {
+        donorName: "Test Donor",
+        campaignName: "Test Campaign",
+        items: [
+          { name: "Test Gift", quantity: 1, familyAlias: "Test Family" }
+        ],
+        dropOffAddress: "123 Test St, Test City, IL",
+        dropOffDeadline: "December 25, 2025"
+      },
+      [EmailTemplateType.DONOR_REMINDER]: {
+        donorName: "Test Donor",
+        items: [
+          { name: "Test Gift", quantity: 1, familyAlias: "Test Family" }
+        ],
+        dropOffAddress: "123 Test St, Test City, IL",
+        dropOffDate: "December 25, 2025",
+        campaignName: "Test Campaign",
+        urgencyEmoji: "🎁",
+        isUrgent: false
+      },
+      [EmailTemplateType.WELCOME_EMAIL]: {
+        recipientName: "Test User",
+        campaignName: "Test Campaign"
+      },
+      [EmailTemplateType.CAMPAIGN_UPDATE]: {
+        campaignName: "Test Campaign",
+        updateMessage: "This is a test campaign update message.",
+        updateType: "general",
+        sentDate: new Date().toLocaleDateString()
+      },
+      [EmailTemplateType.CAMPAIGN_COMPLETION]: {
+        campaignName: "Test Campaign",
+        totalFamilies: 10,
+        totalGifts: 25,
+        totalClaims: 20,
+        completionRate: 80
+      },
+      [EmailTemplateType.ADMIN_NOTIFICATION]: {
+        subject: "Test Admin Notification",
+        message: "This is a test admin notification message.",
+        priority: "normal"
+      }
+    };
+
+    const mergedVariables = { ...defaultVariables[type], ...variables };
+
+    const subject = await renderTemplateFunc(template.subject, mergedVariables);
+    const htmlContent = template.htmlContent ? await renderTemplateFunc(template.htmlContent, mergedVariables) : undefined;
+    const textContent = template.textContent ? await renderTemplateFunc(template.textContent, mergedVariables) : undefined;
+
+    // Debug logging
+    console.log('Template Debug:', {
+      templateType: template.type,
+      hasOriginalHtml: !!template.htmlContent,
+      hasOriginalText: !!template.textContent,
+      renderedHtmlLength: htmlContent?.length || 0,
+      renderedTextLength: textContent?.length || 0,
+      subject
+    });
+
+    // Validate rendered content
+    const validHtmlContent = htmlContent && htmlContent.trim() !== '' ? htmlContent : undefined;
+    const validTextContent = textContent && textContent.trim() !== '' ? textContent : undefined;
+
+    // Send to all provided emails
+    for (const testEmail of testEmails) {
+      const emailData: {
+        to: string;
+        subject: string;
+        template?: {
+          html?: string;
+          text?: string;
+        };
+      } = {
+        to: testEmail,
+        subject: `[TEST] ${subject}`
+      };
+
+      if (validHtmlContent) {
+        emailData.template = { html: validHtmlContent };
+      } else if (validTextContent) {
+        emailData.template = { text: validTextContent };
+      } else {
+        // If no content at all, provide a fallback
+        emailData.template = { 
+          text: `Test email for ${template.name}\n\nTemplate type: ${template.type}\nSubject: ${subject}` 
+        };
+      }
+
+      // Debug the email data being sent
+      console.log('Email Data Being Sent:', {
+        to: emailData.to,
+        subject: emailData.subject,
+        hasTemplate: !!emailData.template,
+        templateKeys: emailData.template ? Object.keys(emailData.template) : [],
+        htmlLength: emailData.template?.html?.length || 0,
+        textLength: emailData.template?.text?.length || 0
+      });
+
+      await sendEmailFunc(emailData);
+    }
+
+    return { success: true, message: `Test email${testEmails.length > 1 ? 's' : ''} sent successfully` };
+  } catch (error) {
+    console.error("Failed to send test email:", error);
+    return { success: false, message: `Failed to send test email: ${error instanceof Error ? error.message : 'Unknown error'}` };
+  }
+}
+
+// Template rendering helper
+export async function renderTemplate(template: string, variables: Record<string, string | number | boolean | Array<Record<string, string | number>>>): Promise<string> {
   let rendered = template;
 
   // Simple variable replacement {{variable}}
@@ -232,7 +346,7 @@ export function renderTemplate(template: string, variables: Record<string, strin
   });
 
   // Handle simple #each blocks for arrays
-  rendered = rendered.replace(/{{#each (\w+)}}([\s\S]*?){{\/each}}/g, (match, arrayName, content) => {
+  rendered = rendered.replace(/{{#each (\w+)}}([\s\S]*?){{\/each}}/g, (match: any, arrayName: any, content: any) => {
     const array = variables[arrayName];
     if (!Array.isArray(array)) return '';
     
@@ -247,10 +361,146 @@ export function renderTemplate(template: string, variables: Record<string, strin
   });
 
   // Handle simple #if blocks
-  rendered = rendered.replace(/{{#if (\w+)}}([\s\S]*?){{\/if}}/g, (match, varName, content) => {
+  rendered = rendered.replace(/{{#if (\w+)}}([\s\S]*?){{\/if}}/g, (match: any, varName: any, content: any) => {
     const value = variables[varName];
     return value ? content : '';
   });
 
   return rendered;
+}
+
+// Get donor's claimed items with all necessary data for email templates
+export async function getDonorClaimedItems(donorEmail: string): Promise<{
+  donorName: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    familyAlias: string;
+  }>;
+  campaignName?: string;
+  dropOffAddress?: string;
+  dropOffDeadline?: Date;
+} | null> {
+  try {
+    const claims = await db.$queryRaw`
+      SELECT 
+        c."donorName",
+        c.quantity,
+        g.name as "giftName",
+        f.alias as "familyAlias",
+        cam.name as "campaignName",
+        cam."dropOffAddress",
+        cam."dropOffDeadline"
+      FROM "Claim" c
+      JOIN "Gift" g ON c."giftId" = g.id
+      JOIN "Family" f ON g."familyId" = f.id
+      JOIN "Campaign" cam ON f."campaignId" = cam.id
+      WHERE LOWER(c."donorEmail") = LOWER(${donorEmail})
+      ORDER BY c."createdAt" DESC
+    `;
+
+    if (!Array.isArray(claims) || claims.length === 0) {
+      return null;
+    }
+
+    const claimsArray = claims as any[];
+    const donorName = claimsArray[0].donorName;
+    const campaignName = claimsArray[0].campaignName;
+    const dropOffAddress = claimsArray[0].dropOffAddress;
+    const dropOffDeadline = claimsArray[0].dropOffDeadline;
+
+    const items = claimsArray.map(claim => ({
+      name: claim.giftName,
+      quantity: claim.quantity,
+      familyAlias: claim.familyAlias
+    }));
+
+    return {
+      donorName,
+      items,
+      campaignName: campaignName || undefined,
+      dropOffAddress: dropOffAddress || undefined,
+      dropOffDeadline: dropOffDeadline ? new Date(dropOffDeadline) : undefined
+    };
+  } catch (error) {
+    console.error("Failed to get donor claimed items:", error);
+    throw new Error("Failed to retrieve donor claimed items");
+  }
+}
+
+// Send real claim confirmation email to a specific donor
+export async function sendRealClaimConfirmationEmail(
+  donorEmail: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // Get donor's claimed items
+    const donorData = await getDonorClaimedItems(donorEmail);
+    
+    if (!donorData) {
+      return { success: false, message: "No claimed items found for this donor" };
+    }
+
+    // Get the claim confirmation template
+    const template = await getEmailTemplate(EmailTemplateType.CLAIM_CONFIRMATION);
+    
+    if (!template) {
+      return { success: false, message: "Claim confirmation template not found" };
+    }
+
+    if (!template.isActive) {
+      return { success: false, message: "Claim confirmation template is not active" };
+    }
+
+    // Import the sendEmail function
+    const { sendEmail: sendEmailFunc } = await import("@/lib/email");
+    
+    // Prepare template variables
+    const variables = {
+      donorName: donorData.donorName,
+      campaignName: donorData.campaignName || "Pitch In List",
+      items: donorData.items,
+      dropOffAddress: donorData.dropOffAddress || "TBD",
+      dropOffDeadline: donorData.dropOffDeadline?.toLocaleDateString() || "TBD"
+    };
+
+    // Render the template
+    const subject = await renderTemplate(template.subject, variables);
+    const htmlContent = template.htmlContent ? await renderTemplate(template.htmlContent, variables) : undefined;
+    const textContent = template.textContent ? await renderTemplate(template.textContent, variables) : undefined;
+
+    // Validate rendered content
+    const validHtmlContent = htmlContent && htmlContent.trim() !== '' ? htmlContent : undefined;
+    const validTextContent = textContent && textContent.trim() !== '' ? textContent : undefined;
+
+    // Send the email
+    const emailData: {
+      to: string;
+      subject: string;
+      template?: {
+        html?: string;
+        text?: string;
+      };
+    } = {
+      to: donorEmail,
+      subject
+    };
+
+    if (validHtmlContent) {
+      emailData.template = { html: validHtmlContent };
+    } else if (validTextContent) {
+      emailData.template = { text: validTextContent };
+    } else {
+      // If no content at all, provide a fallback
+      emailData.template = { 
+        text: `Thank you, ${donorData.donorName}!\n\nWe've successfully recorded your gift claim for ${donorData.campaignName || 'Pitch In List'}. Your generosity makes a real difference in our community!\n\nYOUR CLAIMED ITEMS\n${donorData.items.map(item => `- ${item.quantity}x ${item.name} (for ${item.familyAlias})`).join('\n')}\n\nThank you for making the holidays brighter for local families!\n\nIf you have any questions, please reply to this email.\n\n---\nPitch In List` 
+      };
+    }
+
+    await sendEmailFunc(emailData);
+
+    return { success: true, message: `Claim confirmation email sent to ${donorEmail}` };
+  } catch (error) {
+    console.error("Failed to send real claim confirmation email:", error);
+    return { success: false, message: `Failed to send claim confirmation email: ${error instanceof Error ? error.message : 'Unknown error'}` };
+  }
 }

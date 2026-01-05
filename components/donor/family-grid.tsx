@@ -7,7 +7,7 @@ export function FamilyGrid({ campaign }: { campaign: CampaignWithFamilies }) {
     if (campaign.families.length === 0) {
         return (
             <div className="text-center py-20 px-4">
-                <p className="text-muted-foreground italic">No families are currently listed. Please check back later.</p>
+                <p className="text-muted-foreground italic">No items are currently available for claiming. Please check back later.</p>
             </div>
         );
     }

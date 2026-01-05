@@ -19,7 +19,7 @@ import {
     Heart
 } from "lucide-react";
 import { ClaimDialog } from "@/components/donor/claim-dialog";
-import { AdoptFamilyDialog } from "@/components/donor/adopt-family-dialog";
+import { ClaimFamilyDialog } from "@/components/donor/claim-family-dialog";
 
 export function FamilyCard({ family }: { family: FamilyWithGifts }) {
     const stats = getFamilyProgress(family);
@@ -43,16 +43,16 @@ export function FamilyCard({ family }: { family: FamilyWithGifts }) {
                         <p className="text-sm text-muted-foreground">
                             {stats.totalGifts - stats.claimedGifts} {stats.totalGifts - stats.claimedGifts === 1 ? 'gift' : 'gifts'} still needed
                         </p>
-                        <AdoptFamilyDialog family={family} disabled={isComplete}>
+                        <ClaimFamilyDialog family={family} disabled={isComplete}>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 className="rounded-lg h-8 px-4 text-xs font-bold text-primary hover:bg-primary/10 border-primary/20"
                             >
                                 <Heart className="h-3.5 w-3.5 mr-1.5" />
-                                Claim Family
+                                Claim Items
                             </Button>
-                        </AdoptFamilyDialog>
+                        </ClaimFamilyDialog>
                     </div>
                 )}
             </CardHeader>
@@ -139,13 +139,13 @@ function GiftRow({ gift }: { gift: GiftWithClaims }) {
                             {available} {available === 1 ? 'needed' : 'needed'}
                         </span>
                     )}
-                    <ClaimDialog gift={gift} disabled={isClaimed}>
-                        {isClaimed ? (
-                            <div className="flex items-center gap-1 text-xs font-medium text-primary">
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                Claimed
-                            </div>
-                        ) : (
+                    {isClaimed ? (
+                        <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Claimed
+                        </div>
+                    ) : (
+                        <ClaimDialog gift={gift}>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -153,8 +153,8 @@ function GiftRow({ gift }: { gift: GiftWithClaims }) {
                             >
                                 Claim Item
                             </Button>
-                        )}
-                    </ClaimDialog>
+                        </ClaimDialog>
+                    )}
                 </div>
             </div>
         </div>

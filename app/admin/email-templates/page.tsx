@@ -13,13 +13,17 @@ import {
   Edit, 
   Save, 
   Eye, 
-  Settings
+  Settings,
+  Mail
 } from "lucide-react";
 import { 
   getEmailTemplates, 
-  updateEmailTemplate, 
-  EmailTemplate
+  updateEmailTemplate,
+  sendTestEmailTemplate
 } from "@/lib/actions/email-templates";
+import { EmailTemplate } from "@/lib/email-template-types";
+import { TestEmailDialog } from "@/components/admin/test-email-dialog";
+import { SendRealEmailDialog } from "@/components/admin/send-real-email-dialog";
 
 interface TemplateCardProps {
   template: EmailTemplate;
@@ -30,6 +34,7 @@ interface TemplateCardProps {
 const TemplateCard = ({ template, onEdit, onUpdate }: TemplateCardProps) => {
   const [isActive, setIsActive] = useState(template.isActive);
   const [updating, setUpdating] = useState(false);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
 
   const handleToggleActive = async () => {
     setUpdating(true);
@@ -40,6 +45,16 @@ const TemplateCard = ({ template, onEdit, onUpdate }: TemplateCardProps) => {
       console.error("Failed to update template:", error);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleSendTestEmail = async (emails: string[], customVariables?: Record<string, string>) => {
+    try {
+      const result = await sendTestEmailTemplate(template.type, emails, customVariables);
+      return result;
+    } catch (error) {
+      console.error("Failed to send test email:", error);
+      return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
     }
   };
 
@@ -63,6 +78,14 @@ const TemplateCard = ({ template, onEdit, onUpdate }: TemplateCardProps) => {
               />
               <Label className="text-sm">Active</Label>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTestDialogOpen(true)}
+              disabled={!isActive}
+            >
+              <Mail className="h-4 w-4" />
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -103,6 +126,13 @@ const TemplateCard = ({ template, onEdit, onUpdate }: TemplateCardProps) => {
           </div>
         </div>
       </CardContent>
+
+      <TestEmailDialog
+        isOpen={testDialogOpen}
+        onClose={() => setTestDialogOpen(false)}
+        template={template}
+        onSendTestEmail={handleSendTestEmail}
+      />
     </Card>
   );
 };
@@ -113,6 +143,7 @@ export default function EmailTemplatesPage() {
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
   const [saving, setSaving] = useState(false);
+  const [realEmailDialogOpen, setRealEmailDialogOpen] = useState(false);
 
   useEffect(() => {
     async function loadTemplates() {
@@ -195,6 +226,13 @@ export default function EmailTemplatesPage() {
             Manage and customize email templates sent to donors and administrators.
           </p>
         </div>
+        <Button
+          onClick={() => setRealEmailDialogOpen(true)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Mail className="h-4 w-4 mr-2" />
+          Send Real Email
+        </Button>
       </div>
 
       {/* Templates Grid */}
@@ -405,6 +443,12 @@ export default function EmailTemplatesPage() {
           </div>
         </div>
       )}
+
+      {/* Send Real Email Dialog */}
+      <SendRealEmailDialog
+        isOpen={realEmailDialogOpen}
+        onClose={() => setRealEmailDialogOpen(false)}
+      />
     </div>
   );
 }

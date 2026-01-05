@@ -66,8 +66,8 @@ export default async function Page() {
                             <div id="browse" className="scroll-mt-32 space-y-8">
                                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                                     <div className="space-y-2">
-                                        <h2 className="text-3xl font-bold text-foreground tracking-tight">Browse Families</h2>
-                                        <p className="text-muted-foreground">Choose a family to support this season.</p>
+                                        <h2 className="text-3xl font-bold text-foreground tracking-tight">Browse</h2>
+                                        <p className="text-muted-foreground">Choose items to claim.</p>
                                     </div>
                                 </div>
 

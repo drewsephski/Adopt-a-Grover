@@ -146,14 +146,21 @@ export async function claimGift(
             }
 
             // Check if this donor already claimed this exact gift
-            const existingClaim = gift.claims?.find(
+            const existingClaims = gift.claims?.filter(
                 (c) => c.donorEmail.toLowerCase() === donorEmail
+            ) || [];
+
+            // Calculate how much this donor has already claimed from this gift
+            const alreadyClaimedQuantity = existingClaims.reduce(
+                (sum, claim) => sum + claim.quantity,
+                0
             );
 
-            if (existingClaim) {
+            // Check if adding this claim would exceed the gift's total quantity
+            if (alreadyClaimedQuantity + quantity > gift.quantity) {
                 throw new ClaimError(
-                    "You have already claimed this item. Please contact the organizer if you need to modify your claim.",
-                    "ALREADY_CLAIMED"
+                    `You've already claimed ${alreadyClaimedQuantity} of ${gift.quantity} items. Only ${gift.quantity - alreadyClaimedQuantity} more available.`,
+                    "INSUFFICIENT_QUANTITY"
                 );
             }
 
@@ -238,10 +245,10 @@ export async function claimGift(
 }
 
 // ============================================
-// ADOPT FAMILY (Power Action)
+// CLAIM FAMILY (Power Action)
 // ============================================
 
-export async function adoptFamily(
+export async function claimFamily(
     familyId: string,
     donorName: string,
     donorEmail: string
@@ -266,7 +273,7 @@ export async function adoptFamily(
             throw new ClaimError("Invalid email address", "INVALID_INPUT");
         }
 
-        // Rate limiting (stricter for family adoption)
+        // Rate limiting (stricter for family claim)
         const rateLimitCheck = checkRateLimit(donorEmail);
         if (!rateLimitCheck.allowed) {
             throw new ClaimError(
@@ -303,33 +310,32 @@ export async function adoptFamily(
                 );
             }
 
-            // Check if any items are available
-            const availableGifts = family.gifts.filter(
-                (gift) => getAvailableQuantity(gift) > 0
-            );
+            // Find gifts that are available and not already claimed by this donor
+            const giftsToClaim = family.gifts.filter((gift) => {
+                const available = getAvailableQuantity(gift);
+                if (available === 0) {
+                    return false; // No items available
+                }
+                
+                // Check how many this donor has already claimed from this gift
+                const alreadyClaimed = gift.claims?.filter(
+                    (c) => c.donorEmail.toLowerCase() === donorEmail
+                ).reduce((sum, claim) => sum + claim.quantity, 0) || 0;
+                
+                // Only claim if there are still items available for this donor
+                return alreadyClaimed < gift.quantity;
+            });
 
-            if (availableGifts.length === 0) {
+            if (giftsToClaim.length === 0) {
                 throw new ClaimError(
-                    "All gifts for this family have already been claimed",
+                    "All gifts for this family have already been claimed or you've already claimed all available items.",
                     "INSUFFICIENT_QUANTITY"
                 );
             }
 
-            // Check if this donor already claimed items from this family
-            const existingClaims = family.gifts.some((gift) =>
-                gift.claims.some((c) => c.donorEmail.toLowerCase() === donorEmail)
-            );
-
-            if (existingClaims) {
-                throw new ClaimError(
-                    "You have already claimed items from this family. Please contact the organizer if you need to modify your claims.",
-                    "ALREADY_CLAIMED"
-                );
-            }
-
-            // Create claims for all available gifts
+            // Create claims for all available gifts that this donor hasn't fully claimed
             const claims = await Promise.all(
-                availableGifts.map((gift) => {
+                giftsToClaim.map((gift) => {
                     const available = getAvailableQuantity(gift);
                     return tx.claim.create({
                         data: {
@@ -342,10 +348,10 @@ export async function adoptFamily(
                 })
             );
 
-            return { claims, family, availableGifts };
+            return { claims, family, giftsToClaim };
         });
 
-        const { claims, family, availableGifts } = result;
+        const { claims, family, giftsToClaim } = result;
 
         // Revalidate paths
         revalidatePath("/");
@@ -358,7 +364,7 @@ export async function adoptFamily(
         sendClaimConfirmation({
             donorName,
             donorEmail,
-            items: availableGifts.map((gift) => ({
+            items: giftsToClaim.map((gift) => ({
                 name: gift.name,
                 quantity: getAvailableQuantity(gift),
                 familyAlias: family.alias,
@@ -370,15 +376,15 @@ export async function adoptFamily(
         // Send admin notification
         sendAdminNotification({
             adminEmail: process.env.ADMIN_EMAIL || "test@example.com",
-            subject: "Family fully adopted! 🎉",
-            message: `${donorName} adopted the entire ${family.alias} family with ${claims.length} gift items!\n\nDonor email: ${donorEmail}\n\nGifts claimed:\n${availableGifts.map((g) => `• ${g.name} (${getAvailableQuantity(g)}x)`).join("\n")}`,
+            subject: "Family fully claimed! 🎉",
+            message: `${donorName} claimed ${claims.length} items from the ${family.alias} family!\n\nDonor email: ${donorEmail}\n\nGifts claimed:\n${giftsToClaim.map((g) => `• ${g.name} (${getAvailableQuantity(g)}x)`).join("\n")}`,
             campaignName: family.campaign.name,
         }).catch((err) => console.error("Failed to send admin notification:", err));
 
         return {
             success: true,
             claims,
-            message: `Successfully adopted ${family.alias}! You claimed ${claims.length} items.`,
+            message: `Successfully claimed ${family.alias}! You claimed ${claims.length} items.`,
             itemCount: claims.length,
         };
     } catch (error) {
@@ -390,7 +396,7 @@ export async function adoptFamily(
             };
         }
 
-        console.error("Unexpected error in adoptFamily:", error);
+        console.error("Unexpected error in claimFamily:", error);
         return {
             success: false,
             error: "An unexpected error occurred. Please try again.",

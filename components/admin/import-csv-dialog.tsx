@@ -179,19 +179,19 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
         if (fileInputRef.current) fileInputRef.current.value = "";
     }
 
-    function downloadTemplate(type: "inventory" | "archive" | "adopt") {
+    function downloadTemplate(type: "inventory" | "archive" | "claim") {
         let headers: string[];
         let rows: string[][];
         let filename: string;
 
-        if (type === "adopt") {
+        if (type === "claim") {
             headers = ["First name", "Family", "Role / Age", "Sizes", "Wishlist / Items"];
             rows = [
                 ["Cesar", "A", "Dad", "Shirt L; Jeans 34x32; Shoes 11", "Socks, PJs, Hoodie, Dress Shirt, Sweat pants, Tee shirt"],
                 ["Maria", "A", "Mom", "Shirt XL; Shoes 8", "Socks, PJs, Hoodie, Sweat pants, Tee shirt, Dress Shirt, Leggings"],
                 ["Vitalii", "B", "Boy 13", "Men's M; Winter Boots 10", "Socks, PJs, Tee Shirts, Hoodie, Sweat pants, Hat, Mittens, Winter Boots; Art supplies (pencils, drawing pads); LEGO sets (cars, plane)"]
             ];
-            filename = "campaign_adopt_template.csv";
+            filename = "campaign_claim_template.csv";
         } else if (type === "inventory") {
             headers = ["Family", "Gift Item", "Description", "Quantity Required", "Product URL"];
             rows = [
@@ -322,7 +322,7 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                                 <div className="bg-muted p-3 rounded-lg text-[11px] sm:text-xs text-muted-foreground">
                                     <div className="space-y-2">
                                         <div>
-                                            <span className="font-semibold">Adopt Format:</span> First name, Family, Role / Age, Sizes, Wishlist / Items
+                                            <span className="font-semibold">Claim Format:</span> First name, Family, Role / Age, Sizes, Wishlist / Items
                                         </div>
                                         <div>
                                             <span className="font-semibold">Inventory Format:</span> Family, Gift Item, Description, Quantity Required, Product URL
@@ -340,11 +340,11 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => downloadTemplate("adopt")}
+                                onClick={() => downloadTemplate("claim")}
                                 className="h-11 text-xs"
                             >
                                 <Info className="h-4 w-4 mr-1" />
-                                Adopt Template
+                                Claim Template
                             </Button>
                             <Button
                                 type="button"

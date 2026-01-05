@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { adoptFamily } from "@/lib/actions/claim";
+import { useRouter } from "next/navigation";
+import { claimFamily } from "@/lib/actions/claim";
 import type { FamilyWithGifts, GiftWithClaims } from "@/lib/types";
 import { getAvailableQuantity } from "@/lib/types";
 import { toast } from "sonner";
@@ -25,13 +26,14 @@ import {
     Sparkles
 } from "lucide-react";
 
-interface AdoptFamilyDialogProps {
+interface ClaimFamilyDialogProps {
     family: FamilyWithGifts;
     children: React.ReactNode;
     disabled?: boolean;
 }
 
-export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDialogProps) {
+export function ClaimFamilyDialog({ family, children, disabled }: ClaimFamilyDialogProps) {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -40,18 +42,26 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
         donorEmail: "",
     });
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: Event) {
         e.preventDefault();
         setIsLoading(true);
 
         try {
-            await adoptFamily(
+            const result = await claimFamily(
                 family.id,
                 formData.donorName,
                 formData.donorEmail
             );
+            
+            // Check if claim was successful
+            if (!result.success) {
+                throw new Error(result.error || "Failed to claim family");
+            }
+            
             setStep(2);
-            toast.success(`You've adopted ${family.alias}! Thank you so much.`);
+            toast.success(`You've claimed ${family.alias}! Thank you so much.`);
+            // Refresh the page immediately after successful claim
+            router.refresh();
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
             toast.error(message);
@@ -62,6 +72,10 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
 
     function handleClose() {
         setIsOpen(false);
+        // Refresh the page data when closing after a successful claim
+        if (step === 2) {
+            router.refresh();
+        }
         // Reset state after transition
         setTimeout(() => {
             setStep(1);
@@ -96,10 +110,10 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                             </div>
                             <DialogHeader className="space-y-1">
                                 <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                                    Adopt &quot;{family.alias}&quot;
+                                    Claim &quot;{family.alias}&quot;
                                 </DialogTitle>
                                 <DialogDescription className="text-muted-foreground text-sm sm:text-base">
-                                    By adopting this family, you&apos;re committing to provide ALL remaining items on their list.
+                                    By claiming this family, you&apos;re committing to provide ALL remaining items on their list.
                                 </DialogDescription>
                             </DialogHeader>
                         </div>
@@ -179,7 +193,7 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                                 {isLoading ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : (
-                                    "Confirm Adoption"
+                                    "Confirm Claim"
                                 )}
                             </Button>
                         </div>
@@ -191,7 +205,7 @@ export function AdoptFamilyDialog({ family, children, disabled }: AdoptFamilyDia
                                 <Heart className="h-10 w-10 text-primary fill-primary" />
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">You&apos;re a Hero!</h2>
-                            <p className="text-muted-foreground text-base sm:text-lg">Thank you for adopting &quot;{family.alias}&quot;.</p>
+                            <p className="text-muted-foreground text-base sm:text-lg">Thank you for claiming &quot;{family.alias}&quot;.</p>
                         </div>
 
                         <div className="p-8 space-y-6">

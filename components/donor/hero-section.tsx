@@ -50,11 +50,8 @@ export function HeroSection({ campaignName }: { campaignName?: string }) {
                     </div>
 
                     <h1 className="mx-auto max-w-4xl text-5xl md:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                        {campaignName ? (
-                            <>Sharing the Joy for <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">{campaignName}</span></>
-                        ) : (
-                            <>Pitch In to Make <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Local Impact</span></>
-                        )}
+
+                        Pitch In to Make <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Local Impact</span>
                     </h1>
 
                     <p className="mx-auto max-w-2xl text-lg md:text-xl text-muted-foreground leading-relaxed animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
