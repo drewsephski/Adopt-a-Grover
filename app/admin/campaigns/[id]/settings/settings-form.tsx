@@ -36,7 +36,7 @@ export function CampaignSettingsForm({ campaign }: CampaignSettingsFormProps) {
         status: campaign?.status || CampaignStatus.DRAFT,
     });
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         if (!formData.name.trim()) return;
 

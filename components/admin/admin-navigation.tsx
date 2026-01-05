@@ -11,12 +11,10 @@ import {
     Users,
     ClipboardList,
     LayoutDashboard,
-    Settings,
-    Heart,
     Box,
-    History,
+    Heart,
+    Mail,
     Menu,
-    Mail
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -28,7 +26,6 @@ const navigation = [
     { name: "Gifts", href: "/admin/gifts", icon: <Box className="h-4 w-4" /> },
     { name: "Claims", href: "/admin/claims", icon: <Heart className="h-4 w-4" /> },
     { name: "Email Templates", href: "/admin/email-templates", icon: <Mail className="h-4 w-4" /> },
-    { name: "Settings", href: "/admin/settings", icon: <Settings className="h-4 w-4" /> },
 ];
 
 interface AdminNavProps {

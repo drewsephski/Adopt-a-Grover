@@ -74,7 +74,7 @@ export function FamilyActions({ family }: FamilyActionsProps) {
 
                     <DropdownMenuItem asChild>
                         <Link href={`/admin/families/${family.id}`}>
-                            <Settings2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                            <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                             Manage Gifts
                         </Link>
                     </DropdownMenuItem>
@@ -118,7 +118,7 @@ export function FamilyActions({ family }: FamilyActionsProps) {
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={(e) => {
+                            onClick={(e: any) => {
                                 e.preventDefault();
                                 handleDelete();
                             }}

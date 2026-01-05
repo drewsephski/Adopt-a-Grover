@@ -250,7 +250,7 @@ export function CreateEventDialog({ children }: CreateEventDialogProps) {
     const selectedTemplate = EVENT_TYPES.find(t => t.type === selectedEventType);
     const Icon = selectedTemplate?.icon || Plus;
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         if (!name.trim() || !selectedTemplate) return;
 

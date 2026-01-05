@@ -42,7 +42,7 @@ export function ClaimFamilyDialog({ family, children, disabled }: ClaimFamilyDia
         donorEmail: "",
     });
 
-    async function handleSubmit(e: Event) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         setIsLoading(true);
 

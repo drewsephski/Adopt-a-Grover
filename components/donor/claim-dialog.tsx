@@ -62,7 +62,7 @@ export function ClaimDialog({ gift, children, disabled }: ClaimDialogProps) {
     // Calculate how many more this user can claim
     const userCanClaim = totalAvailable;
 
-    async function handleSubmit(e: Event) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         setIsLoading(true);
 

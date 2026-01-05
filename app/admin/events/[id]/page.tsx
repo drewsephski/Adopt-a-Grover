@@ -27,7 +27,7 @@ export default async function EventDetailPage({
     params: { id: string };
 }) {
     const { id } = await params;
-    const event: CampaignWithFamilies = await getEventById(id);
+    const event = await getEventById(id);
 
     if (!event) {
         notFound();
@@ -39,7 +39,7 @@ export default async function EventDetailPage({
     const uniqueDonors = new Set(
         event.families.flatMap((f: FamilyWithGifts) => 
             f.gifts.flatMap((g: GiftWithClaims) => 
-                g.claims.map((c: Claim) => c.participantEmail.toLowerCase())
+                g.claims.map((c: Claim) => c.donorEmail.toLowerCase())
             )
         )
     ).size;

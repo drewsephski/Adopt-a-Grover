@@ -29,7 +29,7 @@ export function CreateFamilyDialog({ campaignId, children }: CreateFamilyDialogP
     const [alias, setAlias] = useState("");
     const router = useRouter();
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         if (!alias.trim()) return;
 

@@ -28,7 +28,7 @@ export function EditFamilyDialog({ family, children }: EditFamilyDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [alias, setAlias] = useState(family.alias);
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         if (!alias.trim() || alias === family.alias) {
             setOpen(false);

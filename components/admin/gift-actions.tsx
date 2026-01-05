@@ -109,7 +109,7 @@ export function GiftActions({ gift }: GiftActionsProps) {
                     <AlertDialogFooter className="pt-4">
                         <AlertDialogCancel disabled={isLoading} className="rounded-xl font-bold">Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={(e) => {
+                            onClick={(e: any) => {
                                 e.preventDefault();
                                 handleDelete();
                             }}

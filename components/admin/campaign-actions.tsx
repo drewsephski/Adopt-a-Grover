@@ -17,7 +17,8 @@ import {
     Archive,
     PauseCircle,
     Loader2,
-    Settings
+    Edit2,
+    Users
 } from "lucide-react";
 import { updateCampaignStatus, deleteCampaign } from "@/lib/actions/campaign";
 import { CampaignStatus } from "@/lib/types";
@@ -87,7 +88,7 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
 
                     <DropdownMenuItem asChild>
                         <Link href={`/admin/campaigns/${campaign.id}`}>
-                            <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+                            <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                             Manage Details
                         </Link>
                     </DropdownMenuItem>
@@ -145,7 +146,7 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isLoading} size="sm">Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={(e) => {
+                            onClick={(e: any) => {
                                 e.preventDefault();
                                 handleDelete();
                             }}

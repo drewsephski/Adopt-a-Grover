@@ -34,7 +34,7 @@ export function ImportCSVDialog({ campaignId, children }: ImportCSVDialogProps) 
     const [showMapping, setShowMapping] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function handleFileChange(e: any) {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
             if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith(".csv")) {

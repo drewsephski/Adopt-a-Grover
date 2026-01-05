@@ -32,7 +32,7 @@ export function CreatePersonDialog({ familyId, familyAlias, onSuccess }: CreateP
         age: "",
     });
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         setIsLoading(true);
 

@@ -61,7 +61,7 @@ export function CreateGiftDialog({ familyId, personId: initialPersonId, personNa
         }
     }
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         if (!formData.name.trim() || formData.quantity < 1) return;
 

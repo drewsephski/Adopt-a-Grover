@@ -39,7 +39,7 @@ export function CreateCampaignDialog({ children }: CreateCampaignDialogProps) {
         }
     };
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: any) {
         e.preventDefault();
         if (!name.trim()) return;
 

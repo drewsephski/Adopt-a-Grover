@@ -40,7 +40,7 @@ export function TestEmailDialog({ isOpen, onClose, template, onSendTestEmail }: 
     setEmails(emails.filter(email => email !== emailToRemove));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: any) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addEmail();
